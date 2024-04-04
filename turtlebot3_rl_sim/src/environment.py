@@ -24,7 +24,7 @@ import math
 import time
 from math import pi
 from geometry_msgs.msg import Twist, Pose
-from sensor_msgs.msg import LaserScan
+from sensor_msgs.msg import LaserScan, Image
 from nav_msgs.msg import Odometry
 from std_srvs.srv import Empty
 from tf.transformations import euler_from_quaternion
@@ -1249,9 +1249,10 @@ class Env:
         while data is None:
             try:
                 data = rospy.wait_for_message('scan', LaserScan, timeout=5)
+                # data = rospy.wait_for_message('/camera/depth/image_raw', Image, timeout=5)
             except:
                 pass
-
+        print("data ini: ", data)
         # Get initial heading and distance to goal
         self.previous_distance = self.get_distance_to_goal(self.position)
         self.previous_heading = self.get_heading_to_goal(self.position, self.orientation)
