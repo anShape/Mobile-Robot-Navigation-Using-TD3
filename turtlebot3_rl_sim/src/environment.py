@@ -22,9 +22,10 @@ import rospy
 import numpy as np
 import math
 import time
+import tensorflow as tf
 from math import pi
 from geometry_msgs.msg import Twist, Pose
-from sensor_msgs.msg import LaserScan, Image
+from sensor_msgs.msg import LaserScan, Image, PointCloud2
 from nav_msgs.msg import Odometry
 from std_srvs.srv import Empty
 from tf.transformations import euler_from_quaternion
@@ -251,7 +252,7 @@ class Env:
         self.linear_twist = odom.twist.twist.linear
         self.angular_twist = odom.twist.twist.angular
 
-    def get_state(self, scan, step_counter=0, action=[0, 0]):
+    def get_state(self, scan, scan_cam, step_counter=0, action=[0, 0]):
         # print("this is get state " + str(self.inc))
         # self.inc += 1
         # print("step_counter :" + str(step_counter))
@@ -291,6 +292,10 @@ class Env:
         # anti-clockwise manner and the final scan is the same as the first scan, so it is omitted
         _scan_range = utils.get_scan_ranges(scan, self.scan_ranges, self.max_scan_range)
         scan_range = _scan_range[:]
+
+        # print("ini di get_state: ", scan_cam.data)
+        _scan_cam = utils.cnn(scan_cam)
+        # print("ini shape dari hasil cnn: ",_scan_cam.shape)
 
         # Get cartesian coordinate of each obstacle poses from the scans.
         yaw = self.get_angle_from_point(self.orientation)
@@ -1249,15 +1254,16 @@ class Env:
         while data is None:
             try:
                 data = rospy.wait_for_message('scan', LaserScan, timeout=5)
-                # data = rospy.wait_for_message('/camera/depth/image_raw', Image, timeout=5)
+                # data_cam = rospy.wait_for_message('/camera/depth/points', PointCloud2, timeout=5)
+                data_cam = rospy.wait_for_message('/camera/depth/image_raw', Image, timeout=5)
             except:
                 pass
-        print("data ini: ", data)
+        # print("data camera ini: ", data_cam)
         # Get initial heading and distance to goal
         self.previous_distance = self.get_distance_to_goal(self.position)
         self.previous_heading = self.get_heading_to_goal(self.position, self.orientation)
         self.previous_yaw = 3.14
-        state, _ = self.get_state(data)
+        state, _ = self.get_state(data, data_cam)
 
         # Temporary (delete)
         self.step_reward_count = 0

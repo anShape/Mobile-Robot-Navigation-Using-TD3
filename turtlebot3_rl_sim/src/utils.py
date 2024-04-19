@@ -9,6 +9,9 @@ import rospy
 import colorsys
 from math import pi
 from collections import deque
+import tensorflow as tf
+import numpy as np
+from PIL import Image
 
 from tf.transformations import euler_from_quaternion
 from shapely.geometry import LineString
@@ -597,3 +600,35 @@ def create_rviz_visualization_shape_marker(marker, robot_pose, obs_pose, cp, mty
         marker.pose.orientation.w = 1.0
 
     return marker
+
+def cnn(image):
+    # _image = image.data
+    # print("ini atas: ", image.data)
+    # print("ini fungsi cnn", len(_image))
+    
+    _image = []
+    # print("pabngjangnya: ", len(image.data))
+    for i in range(len(image.data)):
+        _image.append(image.data[i])
+    
+    _image = np.array(_image)
+    _image = _image/255
+    print("dalam cnn: ", _image)
+    # print("ini fungsi cnn", _image)
+    
+    # np.savetxt('test.out', _image, delimiter=',')
+    # _image = _image.reshape(240, 320)
+
+    # im = Image.fromarray(_image)
+    # im.save("your_file.jpeg")
+
+    _image = _image.reshape((1, 480, 640, 1))
+    conv_layer = tf.keras.layers.Conv2D(32, (5, 5), strides=5, activation='relu')(_image)
+    # conv_layer = tf.keras.layers.MaxPooling2D(2, 2)(conv_layer)
+    conv_layer = tf.keras.layers.Conv2D(64, (3, 3), strides=3, activation='relu')(conv_layer)
+    # conv_layer = tf.keras.layers.MaxPooling2D(2, 2)(conv_layer)
+    conv_layer = tf.keras.layers.Conv2D(64, (2, 2), strides=2, activation='relu')(conv_layer)
+    # conv_layer = tf.keras.layers.MaxPooling2D(2, 2)(conv_layer)
+    # print(conv_layer.shape)
+    print("tes")
+    return conv_layer
