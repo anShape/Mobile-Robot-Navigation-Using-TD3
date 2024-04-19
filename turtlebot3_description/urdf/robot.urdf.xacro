@@ -13,9 +13,10 @@
 
   <link name="camera_link">
     <visual name="camera">
-      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <origin xyz="0 0 0" rpy="1.5708 0 1.5708"/>
       <geometry>
-        <box size="0.02 0.07 0.03" />
+        <!-- <box size="0.02 0.07 0.03" /> -->
+        <mesh filename="package://robotino_description/meshes/Intel_Realsense_D435.stl" scale="0.001 0.001 0.001"/>
       </geometry>
     </visual>
     <collision name="camera">
@@ -35,7 +36,7 @@
   <joint name="camera_joint" type="fixed">
     <parent link="base_link"/>
     <child link="camera_link"/>
-    <origin xyz="0 0 0.25" rpy="0 0 0"/>
+    <origin xyz="0 0 0.3" rpy="0 0 0"/>
     <axis xyz="0 0 0"/>
   </joint>
 
@@ -66,9 +67,10 @@
 
    <link name="cover_link">
     <visual>
-      <origin xyz="-0.032 0 0" rpy="0 0 0"/>
+      <origin xyz="-0.032 0 -0.12" rpy="1.5708 0 1.5708"/>
       <geometry>
-        <cylinder length="0.2" radius="0.225"/>
+        <!-- <cylinder length="0.2" radius="0.225"/> -->
+        <mesh filename="package://robotino_description/meshes/robotino_body_diy.stl" scale="0.001 0.001 0.001"/>
       </geometry>
       <material name="light_black"/>
     </visual>
@@ -82,10 +84,10 @@
 
     <inertial>
       <origin xyz="0 0 0" rpy="0 0 0"/>
-      <mass value="0.01"/>
-      <inertia ixx="0.01" ixy="0.0" ixz="0.0"
-               iyy="0.01" iyz="0.0"
-               izz="0.01" />
+      <mass value="0.0001"/>
+      <inertia ixx="0.001" ixy="0.0" ixz="0.0"
+               iyy="0.001" iyz="0.0"
+               izz="0.001" />
     </inertial>
   </link>
 
@@ -194,7 +196,7 @@
   <joint name="scan_joint" type="fixed">
     <parent link="base_link"/>
     <child link="base_scan"/>
-    <origin xyz="-0.032 0 0.05" rpy="0 0 0"/>
+    <origin xyz="-0.032 0 0.03" rpy="0 0 0"/>
   </joint>
 
   <link name="base_scan">
