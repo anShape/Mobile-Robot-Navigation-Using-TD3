@@ -61,7 +61,7 @@ if __name__ == '__main__':
         softupdate_coefficient = rospy.get_param("/turtlebot3/tau")
         batch_size = 128
         memory_size = 1000000
-        network_inputs = 550  # 370 #74 #38 #54  # State dimension
+        network_inputs = 48  # 47 = 398 - 351
         hidden_layers = 256  # Hidden dimension
         network_outputs = 2  # Action dimension
         action_v_max = 0.22  # 0.22  # m/s
