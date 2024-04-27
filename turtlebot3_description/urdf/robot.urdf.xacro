@@ -91,7 +91,7 @@
     </inertial>
   </link>
 
-  <joint name="cover_joint" type="continuous">
+  <joint name="cover_joint" type="fixed">
     <parent link="base_link"/>
     <child link="cover_link"/>
     <origin xyz="0.0 0.0 0.1" rpy="0 0 0"/>
