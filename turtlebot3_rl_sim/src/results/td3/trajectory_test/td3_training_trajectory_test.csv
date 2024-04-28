@@ -1053,3 +1053,7 @@ episode_number,success_episode,failure_episode,episode_reward,episode_step,ego_s
 5,False,True,8548,576
 6,False,True,3397,182
 1,False,True,-254,46
+1,False,True,-39,32
+2,False,True,-43,32
+1,False,True,-224,17
+1,False,True,-230,21
