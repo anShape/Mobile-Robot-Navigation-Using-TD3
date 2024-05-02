@@ -1,0 +1,585 @@
+<sdf version='1.7'>
+  <model name='trifingeredu'>
+    <link name='base_link'>
+      <inertial>
+        <pose>-0 0 0.555 0 -0 0</pose>
+        <mass>4</mass>
+        <inertia>
+          <ixx>0.61871</ixx>
+          <ixy>2.13111e-15</ixy>
+          <ixz>3.83332e-15</ixz>
+          <iyy>0.61871</iyy>
+          <iyz>-1.09021e-13</iyz>
+          <izz>0.0960149</izz>
+        </inertia>
+      </inertial>
+      <visual name='base_link_fixed_joint_lump__finger_base_link_0_visual'>
+        <pose>-0 0.22545 0.34 0 0 -1.5708</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://trifinger_edu_description/meshes/stl/edu/base_back.stl</uri>
+          </mesh>
+        </geometry>
+      </visual>
+      <visual name='base_link_fixed_joint_lump__finger_base_link_0_visual_1'>
+        <pose>-0 0.02 0.34 0 0 -1.5708</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://trifinger_edu_description/meshes/stl/edu/base_front.stl</uri>
+          </mesh>
+        </geometry>
+      </visual>
+      <visual name='base_link_fixed_joint_lump__finger_base_link_0_visual_2'>
+        <pose>0.02 0.02 0.42 0 0 -1.5708</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://trifinger_edu_description/meshes/stl/edu/base_side_left.stl</uri>
+          </mesh>
+        </geometry>
+      </visual>
+      <visual name='base_link_fixed_joint_lump__finger_base_link_0_visual_3'>
+        <pose>-0 0.02 0.42 0 0 -1.5708</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://trifinger_edu_description/meshes/stl/edu/base_top.stl</uri>
+          </mesh>
+        </geometry>
+      </visual>
+      <visual name='base_link_fixed_joint_lump__finger_base_link_120_visual_4'>
+        <pose>0.195245 -0.112725 0.34 0 -0 2.61799</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://trifinger_edu_description/meshes/stl/edu/base_back.stl</uri>
+          </mesh>
+        </geometry>
+      </visual>
+      <visual name='base_link_fixed_joint_lump__finger_base_link_120_visual_5'>
+        <pose>0.017321 -0.01 0.34 0 -0 2.61799</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://trifinger_edu_description/meshes/stl/edu/base_front.stl</uri>
+          </mesh>
+        </geometry>
+      </visual>
+      <visual name='base_link_fixed_joint_lump__finger_base_link_120_visual_6'>
+        <pose>0.007321 -0.027321 0.42 0 -0 2.61799</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://trifinger_edu_description/meshes/stl/edu/base_side_left.stl</uri>
+          </mesh>
+        </geometry>
+      </visual>
+      <visual name='base_link_fixed_joint_lump__finger_base_link_120_visual_7'>
+        <pose>0.017321 -0.01 0.42 0 -0 2.61799</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://trifinger_edu_description/meshes/stl/edu/base_top.stl</uri>
+          </mesh>
+        </geometry>
+      </visual>
+      <visual name='base_link_fixed_joint_lump__finger_base_link_240_visual_8'>
+        <pose>-0.195245 -0.112725 0.34 0 -0 0.523599</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://trifinger_edu_description/meshes/stl/edu/base_back.stl</uri>
+          </mesh>
+        </geometry>
+      </visual>
+      <visual name='base_link_fixed_joint_lump__finger_base_link_240_visual_9'>
+        <pose>-0.017321 -0.01 0.34 0 -0 0.523599</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://trifinger_edu_description/meshes/stl/edu/base_front.stl</uri>
+          </mesh>
+        </geometry>
+      </visual>
+      <visual name='base_link_fixed_joint_lump__finger_base_link_240_visual_10'>
+        <pose>-0.027321 0.007321 0.42 0 -0 0.523599</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://trifinger_edu_description/meshes/stl/edu/base_side_left.stl</uri>
+          </mesh>
+        </geometry>
+      </visual>
+      <visual name='base_link_fixed_joint_lump__finger_base_link_240_visual_11'>
+        <pose>-0.017321 -0.01 0.42 0 -0 0.523599</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://trifinger_edu_description/meshes/stl/edu/base_top.stl</uri>
+          </mesh>
+        </geometry>
+      </visual>
+    </link>
+    <joint name='finger_base_to_upper_joint_0' type='revolute'>
+      <pose relative_to='base_link'>-0 0.0455 0.34 0 0 -1.5708</pose>
+      <parent>base_link</parent>
+      <child>finger_upper_link_0</child>
+      <axis>
+        <xyz>-1 0 0</xyz>
+        <limit>
+          <lower>-1.5708</lower>
+          <upper>1.5708</upper>
+          <effort>1000</effort>
+          <velocity>1000</velocity>
+        </limit>
+        <dynamics>
+          <spring_reference>0</spring_reference>
+          <spring_stiffness>0</spring_stiffness>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name='finger_upper_link_0'>
+      <pose relative_to='finger_base_to_upper_joint_0'>0 0 0 0 -0 0</pose>
+      <inertial>
+        <pose>-0.079 0 0 0 -0 0</pose>
+        <mass>0.14854</mass>
+        <inertia>
+          <ixx>3e-05</ixx>
+          <ixy>5e-05</ixy>
+          <ixz>0</ixz>
+          <iyy>0.00041</iyy>
+          <iyz>0</iyz>
+          <izz>0.00041</izz>
+        </inertia>
+      </inertial>
+      <collision name='finger_upper_link_0_collision'>
+        <pose>0.0195 0 0 0 -0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://trifinger_edu_description/meshes/stl/edu/upper_link.stl</uri>
+          </mesh>
+        </geometry>
+      </collision>
+      <visual name='finger_upper_link_0_visual'>
+        <pose>0.0195 0 0 0 -0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://trifinger_edu_description/meshes/stl/edu/upper_link.stl</uri>
+          </mesh>
+        </geometry>
+      </visual>
+    </link>
+    <joint name='finger_upper_to_middle_joint_0' type='revolute'>
+      <pose relative_to='finger_upper_link_0'>0 -0.014 0 0 -0 0</pose>
+      <parent>finger_upper_link_0</parent>
+      <child>finger_middle_link_0</child>
+      <axis>
+        <xyz>0 1 0</xyz>
+        <limit>
+          <lower>-1.5708</lower>
+          <upper>1.5708</upper>
+          <effort>1000</effort>
+          <velocity>1000</velocity>
+        </limit>
+        <dynamics>
+          <spring_reference>0</spring_reference>
+          <spring_stiffness>0</spring_stiffness>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name='finger_middle_link_0'>
+      <pose relative_to='finger_upper_to_middle_joint_0'>0 0 0 0 -0 0</pose>
+      <inertial>
+        <pose>0 -0.019 -0.079 0 -0 0</pose>
+        <mass>0.14854</mass>
+        <inertia>
+          <ixx>0.00041</ixx>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyy>0.00041</iyy>
+          <iyz>5e-05</iyz>
+          <izz>3e-05</izz>
+        </inertia>
+      </inertial>
+      <collision name='finger_middle_link_0_collision'>
+        <pose>0 0 0 0 -0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://trifinger_edu_description/meshes/stl/edu/middle_link.stl</uri>
+          </mesh>
+        </geometry>
+      </collision>
+      <visual name='finger_middle_link_0_visual'>
+        <pose>0 0 0 0 -0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://trifinger_edu_description/meshes/stl/edu/middle_link.stl</uri>
+          </mesh>
+        </geometry>
+      </visual>
+    </link>
+    <joint name='finger_middle_to_lower_joint_0' type='revolute'>
+      <pose relative_to='finger_middle_link_0'>0 -0.03745 -0.16 0 -0 0</pose>
+      <parent>finger_middle_link_0</parent>
+      <child>finger_lower_link_0</child>
+      <axis>
+        <xyz>0 1 0</xyz>
+        <limit>
+          <lower>-3.14159</lower>
+          <upper>3.14159</upper>
+          <effort>1000</effort>
+          <velocity>1000</velocity>
+        </limit>
+        <dynamics>
+          <spring_reference>0</spring_reference>
+          <spring_stiffness>0</spring_stiffness>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name='finger_lower_link_0'>
+      <pose relative_to='finger_middle_to_lower_joint_0'>0 0 0 0 -0 0</pose>
+      <inertial>
+        <pose>0 -0.008754 -0.106445 0 -0 0</pose>
+        <mass>0.0407</mass>
+        <inertia>
+          <ixx>0.000158198</ixx>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyy>0.000158191</iyy>
+          <iyz>5.35553e-07</iyz>
+          <izz>1.7421e-07</izz>
+        </inertia>
+      </inertial>
+      <collision name='finger_lower_link_0_collision'>
+        <pose>0 0 0 0 -0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://trifinger_edu_description/meshes/stl/edu/lower_link.stl</uri>
+          </mesh>
+        </geometry>
+      </collision>
+      <visual name='finger_lower_link_0_visual'>
+        <pose>0 0 0 0 -0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://trifinger_edu_description/meshes/stl/edu/lower_link.stl</uri>
+          </mesh>
+        </geometry>
+      </visual>
+    </link>
+    <joint name='finger_base_to_upper_joint_120' type='revolute'>
+      <pose relative_to='base_link'>0.039404 -0.02275 0.34 0 -0 2.61799</pose>
+      <parent>base_link</parent>
+      <child>finger_upper_link_120</child>
+      <axis>
+        <xyz>-1 0 0</xyz>
+        <limit>
+          <lower>-1.5708</lower>
+          <upper>1.5708</upper>
+          <effort>1000</effort>
+          <velocity>1000</velocity>
+        </limit>
+        <dynamics>
+          <spring_reference>0</spring_reference>
+          <spring_stiffness>0</spring_stiffness>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name='finger_upper_link_120'>
+      <pose relative_to='finger_base_to_upper_joint_120'>0 0 0 0 -0 0</pose>
+      <inertial>
+        <pose>-0.079 0 0 0 -0 0</pose>
+        <mass>0.14854</mass>
+        <inertia>
+          <ixx>3e-05</ixx>
+          <ixy>5e-05</ixy>
+          <ixz>0</ixz>
+          <iyy>0.00041</iyy>
+          <iyz>0</iyz>
+          <izz>0.00041</izz>
+        </inertia>
+      </inertial>
+      <collision name='finger_upper_link_120_collision'>
+        <pose>0.0195 0 0 0 -0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://trifinger_edu_description/meshes/stl/edu/upper_link.stl</uri>
+          </mesh>
+        </geometry>
+      </collision>
+      <visual name='finger_upper_link_120_visual'>
+        <pose>0.0195 0 0 0 -0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://trifinger_edu_description/meshes/stl/edu/upper_link.stl</uri>
+          </mesh>
+        </geometry>
+      </visual>
+    </link>
+    <joint name='finger_upper_to_middle_joint_120' type='revolute'>
+      <pose relative_to='finger_upper_link_120'>0 -0.014 0 0 -0 0</pose>
+      <parent>finger_upper_link_120</parent>
+      <child>finger_middle_link_120</child>
+      <axis>
+        <xyz>0 1 0</xyz>
+        <limit>
+          <lower>-1.5708</lower>
+          <upper>1.5708</upper>
+          <effort>1000</effort>
+          <velocity>1000</velocity>
+        </limit>
+        <dynamics>
+          <spring_reference>0</spring_reference>
+          <spring_stiffness>0</spring_stiffness>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name='finger_middle_link_120'>
+      <pose relative_to='finger_upper_to_middle_joint_120'>0 0 0 0 -0 0</pose>
+      <inertial>
+        <pose>0 -0.019 -0.079 0 -0 0</pose>
+        <mass>0.14854</mass>
+        <inertia>
+          <ixx>0.00041</ixx>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyy>0.00041</iyy>
+          <iyz>5e-05</iyz>
+          <izz>3e-05</izz>
+        </inertia>
+      </inertial>
+      <collision name='finger_middle_link_120_collision'>
+        <pose>0 0 0 0 -0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://trifinger_edu_description/meshes/stl/edu/middle_link.stl</uri>
+          </mesh>
+        </geometry>
+      </collision>
+      <visual name='finger_middle_link_120_visual'>
+        <pose>0 0 0 0 -0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://trifinger_edu_description/meshes/stl/edu/middle_link.stl</uri>
+          </mesh>
+        </geometry>
+      </visual>
+    </link>
+    <joint name='finger_middle_to_lower_joint_120' type='revolute'>
+      <pose relative_to='finger_middle_link_120'>0 -0.03745 -0.16 0 -0 0</pose>
+      <parent>finger_middle_link_120</parent>
+      <child>finger_lower_link_120</child>
+      <axis>
+        <xyz>0 1 0</xyz>
+        <limit>
+          <lower>-3.14159</lower>
+          <upper>3.14159</upper>
+          <effort>1000</effort>
+          <velocity>1000</velocity>
+        </limit>
+        <dynamics>
+          <spring_reference>0</spring_reference>
+          <spring_stiffness>0</spring_stiffness>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name='finger_lower_link_120'>
+      <pose relative_to='finger_middle_to_lower_joint_120'>0 0 0 0 -0 0</pose>
+      <inertial>
+        <pose>0 -0.008754 -0.106445 0 -0 0</pose>
+        <mass>0.0407</mass>
+        <inertia>
+          <ixx>0.000158198</ixx>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyy>0.000158191</iyy>
+          <iyz>5.35553e-07</iyz>
+          <izz>1.7421e-07</izz>
+        </inertia>
+      </inertial>
+      <collision name='finger_lower_link_120_collision'>
+        <pose>0 0 0 0 -0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://trifinger_edu_description/meshes/stl/edu/lower_link.stl</uri>
+          </mesh>
+        </geometry>
+      </collision>
+      <visual name='finger_lower_link_120_visual'>
+        <pose>0 0 0 0 -0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://trifinger_edu_description/meshes/stl/edu/lower_link.stl</uri>
+          </mesh>
+        </geometry>
+      </visual>
+    </link>
+    <joint name='finger_base_to_upper_joint_240' type='revolute'>
+      <pose relative_to='base_link'>-0.039404 -0.02275 0.34 0 -0 0.523599</pose>
+      <parent>base_link</parent>
+      <child>finger_upper_link_240</child>
+      <axis>
+        <xyz>-1 0 0</xyz>
+        <limit>
+          <lower>-1.5708</lower>
+          <upper>1.5708</upper>
+          <effort>1000</effort>
+          <velocity>1000</velocity>
+        </limit>
+        <dynamics>
+          <spring_reference>0</spring_reference>
+          <spring_stiffness>0</spring_stiffness>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name='finger_upper_link_240'>
+      <pose relative_to='finger_base_to_upper_joint_240'>0 0 0 0 -0 0</pose>
+      <inertial>
+        <pose>-0.079 0 0 0 -0 0</pose>
+        <mass>0.14854</mass>
+        <inertia>
+          <ixx>3e-05</ixx>
+          <ixy>5e-05</ixy>
+          <ixz>0</ixz>
+          <iyy>0.00041</iyy>
+          <iyz>0</iyz>
+          <izz>0.00041</izz>
+        </inertia>
+      </inertial>
+      <collision name='finger_upper_link_240_collision'>
+        <pose>0.0195 0 0 0 -0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://trifinger_edu_description/meshes/stl/edu/upper_link.stl</uri>
+          </mesh>
+        </geometry>
+      </collision>
+      <visual name='finger_upper_link_240_visual'>
+        <pose>0.0195 0 0 0 -0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://trifinger_edu_description/meshes/stl/edu/upper_link.stl</uri>
+          </mesh>
+        </geometry>
+      </visual>
+    </link>
+    <joint name='finger_upper_to_middle_joint_240' type='revolute'>
+      <pose relative_to='finger_upper_link_240'>0 -0.014 0 0 -0 0</pose>
+      <parent>finger_upper_link_240</parent>
+      <child>finger_middle_link_240</child>
+      <axis>
+        <xyz>0 1 0</xyz>
+        <limit>
+          <lower>-1.5708</lower>
+          <upper>1.5708</upper>
+          <effort>1000</effort>
+          <velocity>1000</velocity>
+        </limit>
+        <dynamics>
+          <spring_reference>0</spring_reference>
+          <spring_stiffness>0</spring_stiffness>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name='finger_middle_link_240'>
+      <pose relative_to='finger_upper_to_middle_joint_240'>0 0 0 0 -0 0</pose>
+      <inertial>
+        <pose>0 -0.019 -0.079 0 -0 0</pose>
+        <mass>0.14854</mass>
+        <inertia>
+          <ixx>0.00041</ixx>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyy>0.00041</iyy>
+          <iyz>5e-05</iyz>
+          <izz>3e-05</izz>
+        </inertia>
+      </inertial>
+      <collision name='finger_middle_link_240_collision'>
+        <pose>0 0 0 0 -0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://trifinger_edu_description/meshes/stl/edu/middle_link.stl</uri>
+          </mesh>
+        </geometry>
+      </collision>
+      <visual name='finger_middle_link_240_visual'>
+        <pose>0 0 0 0 -0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://trifinger_edu_description/meshes/stl/edu/middle_link.stl</uri>
+          </mesh>
+        </geometry>
+      </visual>
+    </link>
+    <joint name='finger_middle_to_lower_joint_240' type='revolute'>
+      <pose relative_to='finger_middle_link_240'>0 -0.03745 -0.16 0 -0 0</pose>
+      <parent>finger_middle_link_240</parent>
+      <child>finger_lower_link_240</child>
+      <axis>
+        <xyz>0 1 0</xyz>
+        <limit>
+          <lower>-3.14159</lower>
+          <upper>3.14159</upper>
+          <effort>1000</effort>
+          <velocity>1000</velocity>
+        </limit>
+        <dynamics>
+          <spring_reference>0</spring_reference>
+          <spring_stiffness>0</spring_stiffness>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name='finger_lower_link_240'>
+      <pose relative_to='finger_middle_to_lower_joint_240'>0 0 0 0 -0 0</pose>
+      <inertial>
+        <pose>0 -0.008754 -0.106445 0 -0 0</pose>
+        <mass>0.0407</mass>
+        <inertia>
+          <ixx>0.000158198</ixx>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyy>0.000158191</iyy>
+          <iyz>5.35553e-07</iyz>
+          <izz>1.7421e-07</izz>
+        </inertia>
+      </inertial>
+      <collision name='finger_lower_link_240_collision'>
+        <pose>0 0 0 0 -0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://trifinger_edu_description/meshes/stl/edu/lower_link.stl</uri>
+          </mesh>
+        </geometry>
+      </collision>
+      <visual name='finger_lower_link_240_visual'>
+        <pose>0 0 0 0 -0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://trifinger_edu_description/meshes/stl/edu/lower_link.stl</uri>
+          </mesh>
+        </geometry>
+      </visual>
+    </link>
+  </model>
+</sdf>

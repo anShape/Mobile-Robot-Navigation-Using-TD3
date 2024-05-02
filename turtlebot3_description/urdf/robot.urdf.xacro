@@ -69,18 +69,18 @@
     <visual>
       <origin xyz="-0.032 0 -0.12" rpy="1.5708 0 1.5708"/>
       <geometry>
-        <!-- <cylinder length="0.2" radius="0.225"/> -->
+        <!-- <mesh filename="package://robotino_description/meshes/bumper.stl" scale="0.001 0.001 0.001"/> -->
         <mesh filename="package://robotino_description/meshes/robotino_body_diy.stl" scale="0.001 0.001 0.001"/>
       </geometry>
       <material name="light_black"/>
     </visual>
 
-    <!-- <collision>
-      <origin xyz="-0.032 0 0.17" rpy="0 0 0"/>
+    <collision name="bumper_collision">
+      <origin xyz="-0.032 0 -0.1" rpy="1.5708 0 1.5708"/>
       <geometry>
-        <cylinder length="0.325" radius="0.45"/>
+        <mesh filename="package://robotino_description/meshes/bumper.stl" scale="0.001 0.001 0.001"/>
       </geometry>
-    </collision> -->
+    </collision>
 
     <inertial>
       <origin xyz="0 0 0" rpy="0 0 0"/>
