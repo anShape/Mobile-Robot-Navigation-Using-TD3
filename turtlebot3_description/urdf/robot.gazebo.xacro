@@ -181,10 +181,12 @@
   </gazebo>
   
   <gazebo reference="cover_link">
-   <sensor name='my_contact' type='contact'>
-       <plugin name="my_plugin" filename="libcontact.so"/>
+   <sensor name='bumper_contact' type='contact'>
+   <always_on>true</always_on>
+       <plugin name="my_plugin" filename="libgazebo_ros_bumper.so"/>
+       <!-- <plugin name="my_plugin" filename="libcontact.so"/> -->
           <contact>
-            <collision>bumper_collision_collision</collision>
+            <collision>bumper_collision</collision>
           </contact>
         <update_rate> 5 </update_rate>
         </sensor>
