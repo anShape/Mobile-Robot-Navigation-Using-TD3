@@ -24,13 +24,15 @@ import math
 import time
 from math import pi
 from geometry_msgs.msg import Twist, Pose
-from sensor_msgs.msg import LaserScan
+from sensor_msgs.msg import LaserScan, Image
 from nav_msgs.msg import Odometry
 from std_srvs.srv import Empty
 from tf.transformations import euler_from_quaternion
 from geometry_msgs.msg import Point
 from geometry_msgs.msg import PointStamped
+from gazebo_msgs.msg import ContactsState
 from visualization_msgs.msg import Marker
+from cv_bridge import CvBridge
 
 from collections import deque
 from uuid import uuid4
@@ -237,10 +239,8 @@ class Env:
         self.linear_twist = odom.twist.twist.linear
         self.angular_twist = odom.twist.twist.angular
 
-    def get_state(self, bumper, laser_scan, cam_scan, step_counter=0, action=[0, 0]):
-        # print("this is get state " + str(self.inc))
-        # self.inc += 1
-        # print("step_counter :" + str(step_counter))
+    def get_state(self, data_laser, data_bumper, data_cam, step_counter=0, action=[0, 0]):
+
         if step_counter == 1:
             print("ini step counter 1")
             # Get updated waypoints according to the Point Of Intersection at circle (Robot FOV)
@@ -257,7 +257,6 @@ class Env:
 
         # if step_counter % 5 == 0 or distance_to_goal < self.previous_distance: # original 
         if step_counter % 5 == 0:    
-            # print("ini step counter 5")
             goal_waypoints = utils.get_local_goal_waypoints([self.position.x, self.position.y],
                                                             [self.original_desired_point.x,
                                                              self.original_desired_point.y], 0.3)
@@ -275,13 +274,16 @@ class Env:
 
         # Get scan ranges from sensor, reverse the scans and remove the final scan because the scan reads in an
         # anti-clockwise manner and the final scan is the same as the first scan, so it is omitted
-        _scan_range = utils.get_scan_ranges(scan, self.scan_ranges, self.max_scan_range)
+        _scan_range = utils.get_scan_ranges(data_laser, self.scan_ranges, self.max_scan_range)
         scan_range = _scan_range[:]
 
         # Get cartesian coordinate of each obstacle poses from the scans.
         yaw = self.get_angle_from_point(self.orientation)
         self.robot_yaw = yaw
-        obstacle_poses = utils.convert_laserscan_to_coordinate(scan_range, self.scan_ranges, self.position, yaw, 360)
+
+        #INI GA DIPAKE
+        '''
+        obstacle_poses = utils.convert_laserscan_to_coordinate(scan_range, self.scan_ranges, self.position, yaw, 360) 
 
         # Get average distance between laserscans based on ground truth scans, for hungarian association
         # agent_prev_x, agent_prev_y = 0, 0
@@ -304,6 +306,7 @@ class Env:
 
             # Get obstacles' position in a queue list. This is for collision cone.
             self.obstacle_pose_deque[i].append(obstacle_poses[i])
+            
 
         # Check if scans are occupied by an obstacle or not (free space)
         current_scans = scan_range
@@ -313,6 +316,7 @@ class Env:
                 current_scans_is_gt.append(True)
             else:
                 current_scans_is_gt.append(False)
+                '''
 
         # Replace poses with None when scans are ground truth (a.k.a free space)
         filtered_front_obstacle_poses = []
@@ -1019,18 +1023,14 @@ class Env:
         agent_position = [round(self.position.x, 3), round(self.position.y, 3)]
         agent_orientation = [round(self.robot_yaw, 3)]
         agent_velocity = [round(agent_vel_x, 3), round(agent_vel_y, 3)]
-        obstacle_position = self.closest_obstacle_pose
-        obstacle_velocity = self.closest_obstacle_vel
-        obstacle_position_velocity = self.closest_obstacle_pose_vel
-
-        #  no CP (ablation)
-        # obstacle_position_velocity = [self.position.x, self.position.y, 0.0, 0.0] * self.k_obstacle_count
 
         goal_heading_distance = [heading_to_goal, distance_to_goal]
-        general_obs_distance = current_scans
 
-        state = (general_obs_distance + goal_heading_distance + agent_position + agent_orientation + agent_velocity
-                 + obstacle_position_velocity)
+        #Fungsi CNN
+        cnn_result = utils.cnn(data_cam)
+
+        state = (data_laser + goal_heading_distance + agent_position + agent_orientation + agent_velocity
+                 + cnn_result + data_bumper)
 
         # Round items in state to 2 decimal places
         state = list(np.around(np.array(state), 3))
@@ -1231,10 +1231,15 @@ class Env:
         except rospy.ServiceException as e:
             print("gazebo/reset_simulation service call failed")
 
-        data = None
-        while data is None:
+        data_laser = None
+        while data_laser is None:
             try:
-                data = rospy.wait_for_message('scan', LaserScan, timeout=5)
+                data_laser = rospy.wait_for_message('scan', LaserScan, timeout=5)
+                data_bumper = rospy.wait_for_message('bumper_contact', ContactsState, timeout=5)
+                data_cam = rospy.wait_for_message('camera/depth/image_raw', Image, timeout=5)
+                #BIKIN FUNGSI CNN
+                bridge = CvBridge()
+                data_cam = bridge.imgmsg_to_cv2(data_cam, desired_encoding='passthrough')
             except:
                 pass
 
@@ -1242,7 +1247,7 @@ class Env:
         self.previous_distance = self.get_distance_to_goal(self.position)
         self.previous_heading = self.get_heading_to_goal(self.position, self.orientation)
         self.previous_yaw = 3.14
-        state, _ = self.get_state(data)
+        state, _ = self.get_state(data_laser, data_bumper, data_cam) # <-------- BARU NYAMPE SINI
 
         # Temporary (delete)
         self.step_reward_count = 0

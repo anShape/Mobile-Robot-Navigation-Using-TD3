@@ -1046,8 +1046,16 @@ class Env:
         state = (general_obs_distance + goal_heading_distance + agent_position + agent_orientation + agent_velocity
                  + obstacle_position_velocity)
 
+        # print("GENERAL OBS D: ", len(general_obs_distance))
+        # print("GOAL HEADING D: ", len(goal_heading_distance))
+        # print("AGENT POS: ", len(agent_position))
+        # print("AGENT ORI: ", len(agent_orientation))
+        # print("AGENT VEL: ", len(agent_velocity))
+
         # Round items in state to 2 decimal places
         state = list(np.around(np.array(state), 3))
+
+        # print("INI STATE", state)
 
         return state, self.done
 

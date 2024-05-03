@@ -28,7 +28,7 @@ if __name__ == '__main__':
 
     # Set the logging system
     rospack = rospkg.RosPack()
-    pkg_path = rospack.get_path('turtlebot3_rl_sim')
+    pkg_path = rospack.get_path('robotino_rl_sim')
     result_outdir = pkg_path + '/src/results/td3' + '/' + stage_name
     model_outdir = pkg_path + '/src/models/td3' + '/' + stage_name
     actor_model_param_path = model_outdir + '/td3_actor_model_ep'
@@ -47,7 +47,7 @@ if __name__ == '__main__':
     actor_path = actor_resume_path + '.pt'
     critic1_path = critic1_resume_path + '.pt'
     critic2_path = critic2_resume_path + '.pt'
-    k_obstacle_count = 8
+    k_obstacle_count = 3
 
     if not continue_execution:
         # Each time we take a sample and update our weights it is called a mini-batch.
@@ -61,7 +61,7 @@ if __name__ == '__main__':
         softupdate_coefficient = rospy.get_param("/turtlebot3/tau")
         batch_size = 128
         memory_size = 1000000
-        network_inputs = 398  # 370 #74 #38 #54  # State dimension
+        network_inputs = 530  # 370 #74 #38 #54  # State dimension
         hidden_layers = 256  # Hidden dimension
         network_outputs = 2  # Action dimension
         action_v_max = 0.22  # 0.22  # m/s
@@ -76,7 +76,7 @@ if __name__ == '__main__':
                                 softupdate_coefficient, action_v_max, action_w_max, noise_std, noise_clip,
                                 policy_update)
 
-    else:
+    else: #belum diapa-apain
         nepisodes = rospy.get_param("/turtlebot3/nepisodes")
         nsteps = rospy.get_param("/turtlebot3/nsteps")
         actor_learning_rate = rospy.get_param("/turtlebot3/actor_alpha")
