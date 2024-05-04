@@ -282,371 +282,371 @@ class Env:
         self.robot_yaw = yaw
 
         #INI GA DIPAKE
-        '''
-        obstacle_poses = utils.convert_laserscan_to_coordinate(scan_range, self.scan_ranges, self.position, yaw, 360) 
+        
+        # obstacle_poses = utils.convert_laserscan_to_coordinate(scan_range, self.scan_ranges, self.position, yaw, 360) 
 
-        # Get average distance between laserscans based on ground truth scans, for hungarian association
-        # agent_prev_x, agent_prev_y = 0, 0
-        if step_counter == 0:
-            self.ground_truth_poses = utils.convert_laserscan_to_coordinate(self.ground_truth_scans, self.scan_ranges,
-                                                                            self.position, yaw, 360)
-            self.bounding_box_size = utils.compute_average_bounding_box_size(self.ground_truth_poses)
-            self.timestep_delay = time.time()
+        # # Get average distance between laserscans based on ground truth scans, for hungarian association
+        # # agent_prev_x, agent_prev_y = 0, 0
+        # if step_counter == 0:
+        #     self.ground_truth_poses = utils.convert_laserscan_to_coordinate(self.ground_truth_scans, self.scan_ranges,
+        #                                                                     self.position, yaw, 360)
+        #     self.bounding_box_size = utils.compute_average_bounding_box_size(self.ground_truth_poses)
+        #     self.timestep_delay = time.time()
 
-            # Get agent's position in a queue list. This is for collision cone implementation.
-            self.agent_pose_deque.append([round(self.position.x, 3), round(self.position.y, 3)])
+        #     # Get agent's position in a queue list. This is for collision cone implementation.
+        #     self.agent_pose_deque.append([round(self.position.x, 3), round(self.position.y, 3)])
 
-        # Get obstacle region and position
-        obstacle_region = []
-        for i in range(len(obstacle_poses)):
-            # Get obstacles' region. This is for social navigation implementation.
-            obs_heading = utils.get_heading_to_obs(self.position, self.orientation, obstacle_poses[i])
-            region = utils.get_obstacle_region(self.position, yaw, obstacle_poses[i], scan_range[i], obs_heading)
-            obstacle_region.append(region)
+        # # Get obstacle region and position
+        # obstacle_region = []
+        # for i in range(len(obstacle_poses)):
+        #     # Get obstacles' region. This is for social navigation implementation.
+        #     obs_heading = utils.get_heading_to_obs(self.position, self.orientation, obstacle_poses[i])
+        #     region = utils.get_obstacle_region(self.position, yaw, obstacle_poses[i], scan_range[i], obs_heading)
+        #     obstacle_region.append(region)
 
-            # Get obstacles' position in a queue list. This is for collision cone.
-            self.obstacle_pose_deque[i].append(obstacle_poses[i])
+        #     # Get obstacles' position in a queue list. This is for collision cone.
+        #     self.obstacle_pose_deque[i].append(obstacle_poses[i])
             
 
-        # Check if scans are occupied by an obstacle or not (free space)
-        current_scans = scan_range
-        current_scans_is_gt = []
-        for i in range(len(current_scans)):
-            if 1.0 * self.ground_truth_scans[i] <= current_scans[i] <= 1.0 * self.ground_truth_scans[i]:
-                current_scans_is_gt.append(True)
-            else:
-                current_scans_is_gt.append(False)
-                '''
+        # # Check if scans are occupied by an obstacle or not (free space)
+        # current_scans = scan_range
+        # current_scans_is_gt = []
+        # for i in range(len(current_scans)):
+        #     if 1.0 * self.ground_truth_scans[i] <= current_scans[i] <= 1.0 * self.ground_truth_scans[i]:
+        #         current_scans_is_gt.append(True)
+        #     else:
+        #         current_scans_is_gt.append(False)
+                
 
         # Replace poses with None when scans are ground truth (a.k.a free space)
-        filtered_front_obstacle_poses = []
-        filtered_scan_ranges = []
+        # filtered_front_obstacle_poses = []
+        # filtered_scan_ranges = []
 
-        for i in range(len(obstacle_poses)):
-            if current_scans_is_gt[i] is True:
-                # pass
-                filtered_front_obstacle_poses.append(obstacle_poses[i])
-                filtered_scan_ranges.append(round(scan_range[i], 3))
-            else:
-                filtered_front_obstacle_poses.append(obstacle_poses[i])
-                filtered_scan_ranges.append(round(scan_range[i], 3))
+        # for i in range(len(obstacle_poses)):
+        #     if current_scans_is_gt[i] is True:
+        #         # pass
+        #         filtered_front_obstacle_poses.append(obstacle_poses[i])
+        #         filtered_scan_ranges.append(round(scan_range[i], 3))
+        #     else:
+        #         filtered_front_obstacle_poses.append(obstacle_poses[i])
+        #         filtered_scan_ranges.append(round(scan_range[i], 3))
 
-        current_grads = []
-        for i in range(len(filtered_front_obstacle_poses)):
-            if filtered_scan_ranges[i] == 0.6:
-                current_grads.append(None)
-            else:
-                if i == (len(filtered_front_obstacle_poses) - 1):
-                    if (filtered_front_obstacle_poses[i][1] - filtered_front_obstacle_poses[0][1]) == 0:
-                        gradient = 0.0
-                    else:
-                        gradient = (filtered_front_obstacle_poses[i][0] - filtered_front_obstacle_poses[0][0]) \
-                                   / (filtered_front_obstacle_poses[i][1] - filtered_front_obstacle_poses[0][1])
-                else:
-                    if (filtered_front_obstacle_poses[i][1] - filtered_front_obstacle_poses[i + 1][1]) == 0:
-                        gradient = 0.0
-                    else:
-                        gradient = (filtered_front_obstacle_poses[i][0] - filtered_front_obstacle_poses[i + 1][0]) \
-                                   / (filtered_front_obstacle_poses[i][1] - filtered_front_obstacle_poses[i + 1][1])
-                current_grads.append(round(gradient, 3))
+        # current_grads = []
+        # for i in range(len(filtered_front_obstacle_poses)):
+        #     if filtered_scan_ranges[i] == 0.6:
+        #         current_grads.append(None)
+        #     else:
+        #         if i == (len(filtered_front_obstacle_poses) - 1):
+        #             if (filtered_front_obstacle_poses[i][1] - filtered_front_obstacle_poses[0][1]) == 0:
+        #                 gradient = 0.0
+        #             else:
+        #                 gradient = (filtered_front_obstacle_poses[i][0] - filtered_front_obstacle_poses[0][0]) \
+        #                            / (filtered_front_obstacle_poses[i][1] - filtered_front_obstacle_poses[0][1])
+        #         else:
+        #             if (filtered_front_obstacle_poses[i][1] - filtered_front_obstacle_poses[i + 1][1]) == 0:
+        #                 gradient = 0.0
+        #             else:
+        #                 gradient = (filtered_front_obstacle_poses[i][0] - filtered_front_obstacle_poses[i + 1][0]) \
+        #                            / (filtered_front_obstacle_poses[i][1] - filtered_front_obstacle_poses[i + 1][1])
+        #         current_grads.append(round(gradient, 3))
 
-        change_grads = [None] * len(current_grads)
-        last_grad = None
-        for i in range(len(current_grads)):
-            if current_grads[i] is None:
-                change_grads[i] = None
-            else:
-                if len(current_grads) == 1:
-                    change_grads[i] = last_grad
-                elif i == len(current_grads) - 1:
-                    # _change_m = abs(ms[i] - ms[0])
-                    change_grads[i] = last_grad
-                else:
-                    if current_grads[i + 1] is not None:
-                        _change_m = abs(current_grads[i] - current_grads[i + 1])
-                        last_grad = _change_m
-                        change_grads[i] = _change_m
-                    else:
-                        _change_m = None
-                        last_grad = _change_m
-                        change_grads[i] = _change_m
+        # change_grads = [None] * len(current_grads)
+        # last_grad = None
+        # for i in range(len(current_grads)):
+        #     if current_grads[i] is None:
+        #         change_grads[i] = None
+        #     else:
+        #         if len(current_grads) == 1:
+        #             change_grads[i] = last_grad
+        #         elif i == len(current_grads) - 1:
+        #             # _change_m = abs(ms[i] - ms[0])
+        #             change_grads[i] = last_grad
+        #         else:
+        #             if current_grads[i + 1] is not None:
+        #                 _change_m = abs(current_grads[i] - current_grads[i + 1])
+        #                 last_grad = _change_m
+        #                 change_grads[i] = _change_m
+        #             else:
+        #                 _change_m = None
+        #                 last_grad = _change_m
+        #                 change_grads[i] = _change_m
 
         # Find which scan is a wall or obstacle object (object type differentiation)
         # An item in scans_object_type contains [object type, range] for estimating number of scans an obstacle contains
         # given the range
-        _scans_object_type = [None] * len(change_grads)
+        # _scans_object_type = [None] * len(change_grads)
 
-        last_type = None
-        du_count = 0  # Delayed update count
-        for i in range(len(filtered_front_obstacle_poses)):
-            if change_grads[i] is None:
-                pass
-            else:
-                if i == len(change_grads) - 1:
-                    pass
-                # Is the first object a wall type or an obstacle type?
-                elif change_grads[i] == 0:
-                    _scans_object_type[i] = ["w", round(filtered_scan_ranges[i], 3), filtered_front_obstacle_poses[i]]
-                    last_type = _scans_object_type[i]
-                else:
-                    _scans_object_type[i] = ["o", round(filtered_scan_ranges[i], 3), filtered_front_obstacle_poses[i]]
-                    if du_count != 1:
-                        if change_grads[i + 1] == 0:
-                            _scans_object_type[i] = ["w", round(filtered_scan_ranges[i], 3),
-                                                     filtered_front_obstacle_poses[i]]
-                            last_type = _scans_object_type[i]
-                            du_count = 0
-                        if change_grads[i] is not None and change_grads[i + 1] is None:
-                            pass
-                        else:
-                            if abs(change_grads[i] - change_grads[i + 1]) == 0:
-                                _scans_object_type[i] = ["w", round(filtered_scan_ranges[i], 3),
-                                                         filtered_front_obstacle_poses[i]]
-                                last_type = _scans_object_type[i]
-                                du_count = 0
-                            else:
-                                _scans_object_type[i] = last_type
-                                du_count += 1
-                    else:
-                        _scans_object_type[i] = ["o", round(filtered_scan_ranges[i], 3),
-                                                 filtered_front_obstacle_poses[i]]
-                        last_type = _scans_object_type[i]
-                        if change_grads[i + 1] == 0:
-                            du_count = 0
+        # last_type = None
+        # du_count = 0  # Delayed update count
+        # for i in range(len(filtered_front_obstacle_poses)):
+        #     if change_grads[i] is None:
+        #         pass
+        #     else:
+        #         if i == len(change_grads) - 1:
+        #             pass
+        #         # Is the first object a wall type or an obstacle type?
+        #         elif change_grads[i] == 0:
+        #             _scans_object_type[i] = ["w", round(filtered_scan_ranges[i], 3), filtered_front_obstacle_poses[i]]
+        #             last_type = _scans_object_type[i]
+        #         else:
+        #             _scans_object_type[i] = ["o", round(filtered_scan_ranges[i], 3), filtered_front_obstacle_poses[i]]
+        #             if du_count != 1:
+        #                 if change_grads[i + 1] == 0:
+        #                     _scans_object_type[i] = ["w", round(filtered_scan_ranges[i], 3),
+        #                                              filtered_front_obstacle_poses[i]]
+        #                     last_type = _scans_object_type[i]
+        #                     du_count = 0
+        #                 if change_grads[i] is not None and change_grads[i + 1] is None:
+        #                     pass
+        #                 else:
+        #                     if abs(change_grads[i] - change_grads[i + 1]) == 0:
+        #                         _scans_object_type[i] = ["w", round(filtered_scan_ranges[i], 3),
+        #                                                  filtered_front_obstacle_poses[i]]
+        #                         last_type = _scans_object_type[i]
+        #                         du_count = 0
+        #                     else:
+        #                         _scans_object_type[i] = last_type
+        #                         du_count += 1
+        #             else:
+        #                 _scans_object_type[i] = ["o", round(filtered_scan_ranges[i], 3),
+        #                                          filtered_front_obstacle_poses[i]]
+        #                 last_type = _scans_object_type[i]
+        #                 if change_grads[i + 1] == 0:
+        #                    du_count = 0
 
         # Group scans in between None object types (ground truth scans are True)
         # e.g [None, ['o', 1.234], ['o', 1.234], None, ['o', 1.234]]
         # = [[['o', 1.234], ['o', 1.234]], [['o', 1.234]]] <--- 2 objects present
-        scans_object_type = []
-        _scan_group = []
-        for i in range(len(_scans_object_type)):
-            if i == len(_scans_object_type) - 1:
-                pass
-            else:
-                if _scans_object_type[i] is None:
-                    _scan_group.append(_scans_object_type[i])
-                elif _scans_object_type[i] is not None and _scans_object_type[i + 1] is not None:
-                    _scan_group.append(_scans_object_type[i])
-                else:
-                    _scan_group.append(_scans_object_type[i])
-                    scans_object_type.append(_scan_group)
-                    _scan_group = []
+        # scans_object_type = []
+        # _scan_group = []
+        # for i in range(len(_scans_object_type)):
+        #     if i == len(_scans_object_type) - 1:
+        #         pass
+        #     else:
+        #         if _scans_object_type[i] is None:
+        #             _scan_group.append(_scans_object_type[i])
+        #         elif _scans_object_type[i] is not None and _scans_object_type[i + 1] is not None:
+        #             _scan_group.append(_scans_object_type[i])
+        #         else:
+        #             _scan_group.append(_scans_object_type[i])
+        #             scans_object_type.append(_scan_group)
+        #             _scan_group = []
 
         # Object type estimate -> Gradient method
         # Object segmentation/count estimate -> Hungarian association algorithm
         # Object type further confirmation -> distance to num of scans proportionality method
-        estimated_scans_distances = []
-        estimated_scans_object_types = []
-        estimated_scans_object_poses = []
-        for i in range(len(_scans_object_type)):
-            _closest_scans, _obj_types, _obj_poses = [], [], []
-            if _scans_object_type[i] is None:
-                estimated_scans_object_types.append('none')
-                estimated_scans_distances.append(filtered_scan_ranges[i])
-                estimated_scans_object_poses.append(obstacle_poses[i])
-            else:
-                estimated_scans_object_types.append(_scans_object_type[i][0])
-                estimated_scans_distances.append(_scans_object_type[i][1])
-                estimated_scans_object_poses.append(_scans_object_type[i][2])
+        # estimated_scans_distances = []
+        # estimated_scans_object_types = []
+        # estimated_scans_object_poses = []
+        # for i in range(len(_scans_object_type)):
+        #     _closest_scans, _obj_types, _obj_poses = [], [], []
+        #     if _scans_object_type[i] is None:
+        #         estimated_scans_object_types.append('none')
+        #         estimated_scans_distances.append(filtered_scan_ranges[i])
+        #         estimated_scans_object_poses.append(obstacle_poses[i])
+        #     else:
+        #         estimated_scans_object_types.append(_scans_object_type[i][0])
+        #         estimated_scans_distances.append(_scans_object_type[i][1])
+        #         estimated_scans_object_poses.append(_scans_object_type[i][2])
 
         # Object segmentation/count estimate (Hungarian association)
-        iou, _iou = [], []
-        _segmented_scan_object_types, _segmented_type = [], []
-        _segmented_scan_object_distances, _segmented_dist = [], []
-        _segmented_scan_object_poses, _segmented_poses = [], []
-        for i in range(len(estimated_scans_object_types)):
-            if i == len(estimated_scans_object_types) - 1:
-                if utils.is_associated(estimated_scans_object_poses[i], estimated_scans_object_poses[0],
-                                       self.bounding_box_size * 2) is True:  # Twice because of the blindspot
-                    _segmented_type.append(estimated_scans_object_types[i])
-                    _segmented_dist.append(estimated_scans_distances[i])
-                    _segmented_poses.append(estimated_scans_object_poses[i])
-                    _segmented_scan_object_types.append(_segmented_type)
-                    _segmented_scan_object_distances.append(_segmented_dist)
-                    _segmented_scan_object_poses.append(_segmented_poses)
-                    _segmented_type, _segmented_dist, _segmented_poses = [], [], []
-                else:
-                    _segmented_type.append(estimated_scans_object_types[i])
-                    _segmented_dist.append(estimated_scans_distances[i])
-                    _segmented_poses.append(estimated_scans_object_poses[i])
-                    _segmented_scan_object_types.append(_segmented_type)
-                    _segmented_scan_object_distances.append(_segmented_dist)
-                    _segmented_scan_object_poses.append(_segmented_poses)
-                    _segmented_type, _segmented_dist, _segmented_poses = [], [], []
-            else:
-                if utils.is_associated(estimated_scans_object_poses[i], estimated_scans_object_poses[i + 1],
-                                       self.bounding_box_size) is True:
-                    _segmented_type.append(estimated_scans_object_types[i])
-                    _segmented_dist.append(estimated_scans_distances[i])
-                    _segmented_poses.append(estimated_scans_object_poses[i])
+        # iou, _iou = [], []
+        # _segmented_scan_object_types, _segmented_type = [], []
+        # _segmented_scan_object_distances, _segmented_dist = [], []
+        # _segmented_scan_object_poses, _segmented_poses = [], []
+        # for i in range(len(estimated_scans_object_types)):
+        #     if i == len(estimated_scans_object_types) - 1:
+        #         if utils.is_associated(estimated_scans_object_poses[i], estimated_scans_object_poses[0],
+        #                                self.bounding_box_size * 2) is True:  # Twice because of the blindspot
+        #             _segmented_type.append(estimated_scans_object_types[i])
+        #             _segmented_dist.append(estimated_scans_distances[i])
+        #             _segmented_poses.append(estimated_scans_object_poses[i])
+        #             _segmented_scan_object_types.append(_segmented_type)
+        #             _segmented_scan_object_distances.append(_segmented_dist)
+        #             _segmented_scan_object_poses.append(_segmented_poses)
+        #             _segmented_type, _segmented_dist, _segmented_poses = [], [], []
+        #         else:
+        #             _segmented_type.append(estimated_scans_object_types[i])
+        #             _segmented_dist.append(estimated_scans_distances[i])
+        #             _segmented_poses.append(estimated_scans_object_poses[i])
+        #             _segmented_scan_object_types.append(_segmented_type)
+        #             _segmented_scan_object_distances.append(_segmented_dist)
+        #             _segmented_scan_object_poses.append(_segmented_poses)
+        #             _segmented_type, _segmented_dist, _segmented_poses = [], [], []
+        #     else:
+        #         if utils.is_associated(estimated_scans_object_poses[i], estimated_scans_object_poses[i + 1],
+        #                                self.bounding_box_size) is True:
+        #             _segmented_type.append(estimated_scans_object_types[i])
+        #             _segmented_dist.append(estimated_scans_distances[i])
+        #             _segmented_poses.append(estimated_scans_object_poses[i])
 
-                else:
-                    _segmented_type.append(estimated_scans_object_types[i])
-                    _segmented_dist.append(estimated_scans_distances[i])
-                    _segmented_poses.append(estimated_scans_object_poses[i])
-                    _segmented_scan_object_types.append(_segmented_type)
-                    _segmented_scan_object_distances.append(_segmented_dist)
-                    _segmented_scan_object_poses.append(_segmented_poses)
-                    _segmented_type, _segmented_dist, _segmented_poses = [], [], []
+        #         else:
+        #             _segmented_type.append(estimated_scans_object_types[i])
+        #             _segmented_dist.append(estimated_scans_distances[i])
+        #             _segmented_poses.append(estimated_scans_object_poses[i])
+        #             _segmented_scan_object_types.append(_segmented_type)
+        #             _segmented_scan_object_distances.append(_segmented_dist)
+        #             _segmented_scan_object_poses.append(_segmented_poses)
+        #             _segmented_type, _segmented_dist, _segmented_poses = [], [], []
 
         # Fix issue of detecting two seperate objects between the first scan and the last scan
         # There is a small region where no raycast is present there. This fix uses Hungarian association score of about
         # twice the average bounding box size since the small region occupies about one bounding box size.
-        for i in range(1):
-            if len(_segmented_scan_object_types) > 1:
-                if utils.is_associated(_segmented_scan_object_poses[0][0], _segmented_scan_object_poses[-1][-1],
-                                       self.bounding_box_size * 2) is True:
-                    _concat_scan_type = _segmented_scan_object_types[0] + _segmented_scan_object_types[-1]
-                    _concat_scan_dist = _segmented_scan_object_distances[0] + _segmented_scan_object_distances[-1]
-                    _concat_scan_pose = _segmented_scan_object_poses[0] + _segmented_scan_object_poses[-1]
-                    _segmented_scan_object_types[0] = _concat_scan_type
-                    _segmented_scan_object_distances[0] = _concat_scan_dist
-                    _segmented_scan_object_poses[0] = _concat_scan_pose
-                    _segmented_scan_object_types.pop(-1)
-                    _segmented_scan_object_distances.pop(-1)
-                    _segmented_scan_object_poses.pop(-1)
+        # for i in range(1):
+        #     if len(_segmented_scan_object_types) > 1:
+        #         if utils.is_associated(_segmented_scan_object_poses[0][0], _segmented_scan_object_poses[-1][-1],
+        #                                self.bounding_box_size * 2) is True:
+        #             _concat_scan_type = _segmented_scan_object_types[0] + _segmented_scan_object_types[-1]
+        #             _concat_scan_dist = _segmented_scan_object_distances[0] + _segmented_scan_object_distances[-1]
+        #             _concat_scan_pose = _segmented_scan_object_poses[0] + _segmented_scan_object_poses[-1]
+        #             _segmented_scan_object_types[0] = _concat_scan_type
+        #             _segmented_scan_object_distances[0] = _concat_scan_dist
+        #             _segmented_scan_object_poses[0] = _concat_scan_pose
+        #             _segmented_scan_object_types.pop(-1)
+        #             _segmented_scan_object_distances.pop(-1)
+        #             _segmented_scan_object_poses.pop(-1)
 
-        segmented_scan_object_types = _segmented_scan_object_types
-        segmented_scan_object_distances = _segmented_scan_object_distances
-        segmented_scan_object_poses = _segmented_scan_object_poses
+        # segmented_scan_object_types = _segmented_scan_object_types
+        # segmented_scan_object_distances = _segmented_scan_object_distances
+        # segmented_scan_object_poses = _segmented_scan_object_poses
 
         # Fix wall scans being grouped with None scans
-        __segmented_scan_object_types, __segmented_type = [], []
-        __segmented_scan_object_distances, __segmented_dist = [], []
-        __segmented_scan_object_poses, __segmented_poses = [], []
-        for i in range(len(segmented_scan_object_distances)):
-            if not any(a != 0.6 for a in segmented_scan_object_distances[i]):
-                continue
-            else:
-                for j in range(len(segmented_scan_object_types[i])):
-                    if j == len(segmented_scan_object_types[i]) - 1:
-                        __segmented_type.append(segmented_scan_object_types[i][j])
-                        __segmented_dist.append(segmented_scan_object_distances[i][j])
-                        __segmented_poses.append(segmented_scan_object_poses[i][j])
-                        __segmented_scan_object_types.append(__segmented_type)
-                        __segmented_scan_object_distances.append(__segmented_dist)
-                        __segmented_scan_object_poses.append(__segmented_poses)
-                        __segmented_type, __segmented_dist, __segmented_poses = [], [], []
-                    else:
-                        if segmented_scan_object_distances[i][j] == 0.6 and \
-                                segmented_scan_object_distances[i][j + 1] == 0.6:
-                            __segmented_type.append(segmented_scan_object_types[i][j])
-                            __segmented_dist.append(segmented_scan_object_distances[i][j])
-                            __segmented_poses.append(segmented_scan_object_poses[i][j])
-                        elif segmented_scan_object_distances[i][j] != 0.6 and \
-                                segmented_scan_object_distances[i][j + 1] != 0.6:
-                            __segmented_type.append(segmented_scan_object_types[i][j])
-                            __segmented_dist.append(segmented_scan_object_distances[i][j])
-                            __segmented_poses.append(segmented_scan_object_poses[i][j])
-                        else:
-                            __segmented_type.append(segmented_scan_object_types[i][j])
-                            __segmented_dist.append(segmented_scan_object_distances[i][j])
-                            __segmented_poses.append(segmented_scan_object_poses[i][j])
-                            __segmented_scan_object_types.append(__segmented_type)
-                            __segmented_scan_object_distances.append(__segmented_dist)
-                            __segmented_scan_object_poses.append(__segmented_poses)
-                            __segmented_type, __segmented_dist, __segmented_poses = [], [], []
+        # __segmented_scan_object_types, __segmented_type = [], []
+        # __segmented_scan_object_distances, __segmented_dist = [], []
+        # __segmented_scan_object_poses, __segmented_poses = [], []
+        # for i in range(len(segmented_scan_object_distances)):
+        #     if not any(a != 0.6 for a in segmented_scan_object_distances[i]):
+        #         continue
+        #     else:
+        #         for j in range(len(segmented_scan_object_types[i])):
+        #             if j == len(segmented_scan_object_types[i]) - 1:
+        #                 __segmented_type.append(segmented_scan_object_types[i][j])
+        #                 __segmented_dist.append(segmented_scan_object_distances[i][j])
+        #                 __segmented_poses.append(segmented_scan_object_poses[i][j])
+        #                 __segmented_scan_object_types.append(__segmented_type)
+        #                 __segmented_scan_object_distances.append(__segmented_dist)
+        #                 __segmented_scan_object_poses.append(__segmented_poses)
+        #                 __segmented_type, __segmented_dist, __segmented_poses = [], [], []
+        #             else:
+        #                 if segmented_scan_object_distances[i][j] == 0.6 and \
+        #                         segmented_scan_object_distances[i][j + 1] == 0.6:
+        #                     __segmented_type.append(segmented_scan_object_types[i][j])
+        #                     __segmented_dist.append(segmented_scan_object_distances[i][j])
+        #                     __segmented_poses.append(segmented_scan_object_poses[i][j])
+        #                 elif segmented_scan_object_distances[i][j] != 0.6 and \
+        #                         segmented_scan_object_distances[i][j + 1] != 0.6:
+        #                     __segmented_type.append(segmented_scan_object_types[i][j])
+        #                     __segmented_dist.append(segmented_scan_object_distances[i][j])
+        #                     __segmented_poses.append(segmented_scan_object_poses[i][j])
+        #                 else:
+        #                     __segmented_type.append(segmented_scan_object_types[i][j])
+        #                     __segmented_dist.append(segmented_scan_object_distances[i][j])
+        #                     __segmented_poses.append(segmented_scan_object_poses[i][j])
+        #                     __segmented_scan_object_types.append(__segmented_type)
+        #                     __segmented_scan_object_distances.append(__segmented_dist)
+        #                     __segmented_scan_object_poses.append(__segmented_poses)
+        #                     __segmented_type, __segmented_dist, __segmented_poses = [], [], []
 
-                segmented_scan_object_types[i] = __segmented_scan_object_types
-                segmented_scan_object_distances[i] = __segmented_scan_object_distances
-                segmented_scan_object_poses[i] = __segmented_scan_object_poses
-                __segmented_scan_object_types = []
-                __segmented_scan_object_distances = []
-                __segmented_scan_object_poses = []
+        #         segmented_scan_object_types[i] = __segmented_scan_object_types
+        #         segmented_scan_object_distances[i] = __segmented_scan_object_distances
+        #         segmented_scan_object_poses[i] = __segmented_scan_object_poses
+        #         __segmented_scan_object_types = []
+        #         __segmented_scan_object_distances = []
+        #         __segmented_scan_object_poses = []
 
-        segmented_scan_object_distances_2d = []
-        segmented_scan_object_types_2d = []
-        segmented_scan_object_poses_2d = []
+        # segmented_scan_object_distances_2d = []
+        # segmented_scan_object_types_2d = []
+        # segmented_scan_object_poses_2d = []
 
         # # Temporary fix: remove nones from first and last index of a list
-        for i in range(len(segmented_scan_object_distances)):
-            if any(isinstance(item, list) for item in segmented_scan_object_distances[i]):
-                for j in range(len(segmented_scan_object_distances[i])):
-                    segmented_scan_object_distances_2d.append(segmented_scan_object_distances[i][j])
-                    segmented_scan_object_types_2d.append(segmented_scan_object_types[i][j])
-                    segmented_scan_object_poses_2d.append(segmented_scan_object_poses[i][j])
-            else:
-                segmented_scan_object_distances_2d.append(segmented_scan_object_distances[i])
-                segmented_scan_object_types_2d.append(segmented_scan_object_types[i])
-                segmented_scan_object_poses_2d.append(segmented_scan_object_poses[i])
+        # for i in range(len(segmented_scan_object_distances)):
+        #     if any(isinstance(item, list) for item in segmented_scan_object_distances[i]):
+        #         for j in range(len(segmented_scan_object_distances[i])):
+        #             segmented_scan_object_distances_2d.append(segmented_scan_object_distances[i][j])
+        #             segmented_scan_object_types_2d.append(segmented_scan_object_types[i][j])
+        #             segmented_scan_object_poses_2d.append(segmented_scan_object_poses[i][j])
+        #     else:
+        #         segmented_scan_object_distances_2d.append(segmented_scan_object_distances[i])
+        #         segmented_scan_object_types_2d.append(segmented_scan_object_types[i])
+        #         segmented_scan_object_poses_2d.append(segmented_scan_object_poses[i])
 
         # Object type confirmation (Scan distance to number of obstacle type estimate with proportionality)
-        confirmed_scan_object = []
-        for i in range(len(segmented_scan_object_types_2d)):
-            if not any(a != 0.6 for a in segmented_scan_object_distances_2d[i]):
-                continue
-            elif len(segmented_scan_object_distances_2d[i]) < 4:
-                for j in range(len(segmented_scan_object_distances_2d[i])):
-                    segmented_scan_object_distances_2d[i][j] = 0.6
-            else:
-                _center_item = len(segmented_scan_object_types_2d[i]) / 2
-                _center_item = int(_center_item)
-                estimated_obstacle_count = utils.estimate_num_obs_scans(
-                    segmented_scan_object_distances_2d[i][_center_item],
-                    self.max_scan_range,
-                    self.min_scan_range)
-                current_obstacle_count = segmented_scan_object_types_2d[i].count('o')
-                confirmed_obstacle_score = float(current_obstacle_count) / min(len(segmented_scan_object_types_2d[i]),
-                                                                               estimated_obstacle_count)
+        # confirmed_scan_object = []
+        # for i in range(len(segmented_scan_object_types_2d)):
+        #     if not any(a != 0.6 for a in segmented_scan_object_distances_2d[i]):
+        #         continue
+        #     elif len(segmented_scan_object_distances_2d[i]) < 4:
+        #         for j in range(len(segmented_scan_object_distances_2d[i])):
+        #             segmented_scan_object_distances_2d[i][j] = 0.6
+        #     else:
+        #         _center_item = len(segmented_scan_object_types_2d[i]) / 2
+        #         _center_item = int(_center_item)
+        #         estimated_obstacle_count = utils.estimate_num_obs_scans(
+        #             segmented_scan_object_distances_2d[i][_center_item],
+        #             self.max_scan_range,
+        #             self.min_scan_range)
+        #         current_obstacle_count = segmented_scan_object_types_2d[i].count('o')
+        #         confirmed_obstacle_score = float(current_obstacle_count) / min(len(segmented_scan_object_types_2d[i]),
+        #                                                                        estimated_obstacle_count)
 
-                if len(set(segmented_scan_object_types_2d[i])) > 1:  # Not all identical
-                    if confirmed_obstacle_score >= 0.5:
-                        if segmented_scan_object_types_2d[i].count('o') > segmented_scan_object_types_2d[i].count('w'):
-                            confirmed_scan_object.append(['o', segmented_scan_object_poses_2d[i][_center_item],
-                                                          segmented_scan_object_distances_2d[i][_center_item]])
-                        else:
-                            confirmed_scan_object.append(['w', segmented_scan_object_poses_2d[i][_center_item],
-                                                          segmented_scan_object_distances_2d[i][_center_item]])
-                    else:
-                        if len(segmented_scan_object_types_2d[i]) <= estimated_obstacle_count:
-                            if segmented_scan_object_types_2d[i].count('o') > segmented_scan_object_types_2d[i].count(
-                                    'w'):
-                                confirmed_scan_object.append(['o', segmented_scan_object_poses_2d[i][_center_item],
-                                                              segmented_scan_object_distances_2d[i][_center_item]])
-                            else:
-                                confirmed_scan_object.append(['w', segmented_scan_object_poses_2d[i][_center_item],
-                                                              segmented_scan_object_distances_2d[i][_center_item]])
-                        else:
-                            confirmed_scan_object.append(['w', segmented_scan_object_poses_2d[i][_center_item],
-                                                          segmented_scan_object_distances_2d[i][_center_item]])
-                else:  # identical
-                    if 'w' in segmented_scan_object_types_2d[i]:
-                        if len(segmented_scan_object_types_2d[i]) <= min(len(segmented_scan_object_types_2d),
-                                                                         estimated_obstacle_count):
-                            pass
-                        else:
-                            confirmed_scan_object.append(['w', segmented_scan_object_poses_2d[i][_center_item],
-                                                          segmented_scan_object_distances_2d[i][_center_item]])
-                    else:
-                        if len(segmented_scan_object_types_2d[i]) <= min(len(segmented_scan_object_types_2d),
-                                                                         estimated_obstacle_count):
-                            pass
-                        else:
-                            confirmed_scan_object.append(['o', segmented_scan_object_poses_2d[i][_center_item],
-                                                          segmented_scan_object_distances_2d[i][_center_item]])
+        #         if len(set(segmented_scan_object_types_2d[i])) > 1:  # Not all identical
+        #             if confirmed_obstacle_score >= 0.5:
+        #                 if segmented_scan_object_types_2d[i].count('o') > segmented_scan_object_types_2d[i].count('w'):
+        #                     confirmed_scan_object.append(['o', segmented_scan_object_poses_2d[i][_center_item],
+        #                                                   segmented_scan_object_distances_2d[i][_center_item]])
+        #                 else:
+        #                     confirmed_scan_object.append(['w', segmented_scan_object_poses_2d[i][_center_item],
+        #                                                   segmented_scan_object_distances_2d[i][_center_item]])
+        #             else:
+        #                 if len(segmented_scan_object_types_2d[i]) <= estimated_obstacle_count:
+        #                     if segmented_scan_object_types_2d[i].count('o') > segmented_scan_object_types_2d[i].count(
+        #                             'w'):
+        #                         confirmed_scan_object.append(['o', segmented_scan_object_poses_2d[i][_center_item],
+        #                                                       segmented_scan_object_distances_2d[i][_center_item]])
+        #                     else:
+        #                         confirmed_scan_object.append(['w', segmented_scan_object_poses_2d[i][_center_item],
+        #                                                       segmented_scan_object_distances_2d[i][_center_item]])
+        #                 else:
+        #                     confirmed_scan_object.append(['w', segmented_scan_object_poses_2d[i][_center_item],
+        #                                                   segmented_scan_object_distances_2d[i][_center_item]])
+        #         else:  # identical
+        #             if 'w' in segmented_scan_object_types_2d[i]:
+        #                 if len(segmented_scan_object_types_2d[i]) <= min(len(segmented_scan_object_types_2d),
+        #                                                                  estimated_obstacle_count):
+        #                     pass
+        #                 else:
+        #                     confirmed_scan_object.append(['w', segmented_scan_object_poses_2d[i][_center_item],
+        #                                                   segmented_scan_object_distances_2d[i][_center_item]])
+        #             else:
+        #                 if len(segmented_scan_object_types_2d[i]) <= min(len(segmented_scan_object_types_2d),
+        #                                                                  estimated_obstacle_count):
+        #                     pass
+        #                 else:
+        #                     confirmed_scan_object.append(['o', segmented_scan_object_poses_2d[i][_center_item],
+        #                                                   segmented_scan_object_distances_2d[i][_center_item]])
 
         # Fix segmented scans from message dropping out in
-        ___segmented_scan_object_types, ___segmented_type = [], []
-        ___segmented_scan_object_distances, ___segmented_dist = [], []
-        ___segmented_scan_object_poses, ___segmented_poses = [], []
-        for i in range(len(segmented_scan_object_distances_2d)):
-            if 0.6 in segmented_scan_object_distances_2d[i]:
-                ___segmented_dist += segmented_scan_object_distances_2d[i]
-                if i == len(segmented_scan_object_distances_2d) - 1:
-                    ___segmented_scan_object_distances.append(___segmented_dist)
-                    ___segmented_dist = []
-            else:
-                ___segmented_scan_object_distances.append(___segmented_dist)
-                ___segmented_scan_object_distances.append(segmented_scan_object_distances_2d[i])
-                ___segmented_dist = []
+        # ___segmented_scan_object_types, ___segmented_type = [], []
+        # ___segmented_scan_object_distances, ___segmented_dist = [], []
+        # ___segmented_scan_object_poses, ___segmented_poses = [], []
+        # for i in range(len(segmented_scan_object_distances_2d)):
+        #     if 0.6 in segmented_scan_object_distances_2d[i]:
+        #         ___segmented_dist += segmented_scan_object_distances_2d[i]
+        #         if i == len(segmented_scan_object_distances_2d) - 1:
+        #             ___segmented_scan_object_distances.append(___segmented_dist)
+        #             ___segmented_dist = []
+        #     else:
+        #         ___segmented_scan_object_distances.append(___segmented_dist)
+        #         ___segmented_scan_object_distances.append(segmented_scan_object_distances_2d[i])
+        #         ___segmented_dist = []
 
-        # Get wall scans and obstacle object scans
-        wall_scans, obstacle_scans = [], []
-        for i in range(len(confirmed_scan_object)):
-            if confirmed_scan_object[i][0] == "w":
-                wall_scans.append(confirmed_scan_object[i])
-            if confirmed_scan_object[i][0] == "o":
-                obstacle_scans.append(confirmed_scan_object[i])
+        # # Get wall scans and obstacle object scans
+        # wall_scans, obstacle_scans = [], []
+        # for i in range(len(confirmed_scan_object)):
+        #     if confirmed_scan_object[i][0] == "w":
+        #         wall_scans.append(confirmed_scan_object[i])
+        #     if confirmed_scan_object[i][0] == "o":
+        #         obstacle_scans.append(confirmed_scan_object[i])
 
         # print("CONFIRMED SCAN: ", confirmed_scan_object)
         # print("OBSTACLE SCANS: ", obstacle_scans)
@@ -656,360 +656,360 @@ class Env:
 
         # Check if there is obstacle: for calculating accurate ego and social score (don't count all steps but just
         # steps where an obstacle is "seen" by the robot
-        if len(obstacle_scans) > 0:
-            self.obstacle_present_step_counts += 1
+        # if len(obstacle_scans) > 0:
+        #     self.obstacle_present_step_counts += 1
 
-        iou, _iou = [], []
-        checked_obj_scans = None
-        tracked_obstacles_copy = self.tracked_obstacles.copy()
-        tracked_obstacles_key_copy = self.tracked_obstacles_keys[:]
-        if len(tracked_obstacles_copy) == 0:
-            for i in range(len(obstacle_scans)):
-                unique_id = uuid4()
-                # Get tracked obstacles in the following format [<object type>, <coord list>, <distance>, ...<append>]
-                _tracked_obs = obstacle_scans[i][:]
-                _tracked_obs.append(deque([obstacle_scans[i][1]]))
-                _tracked_obs.append(time.time())
-                _tracked_obs.append(-1)  # velocity
-                _tracked_obs.append([0.0, 0.0])  # velocity X and Y
-                # Assign a unique id to tracked obstacles
-                self.tracked_obstacles[unique_id] = _tracked_obs
-            self.tracked_obstacles_keys = list(self.tracked_obstacles.keys())
-            tracked_obstacles_key_copy = self.tracked_obstacles_keys[:]
-        else:
-            # Check if object is associated with IOU score
-            val, idx = None, None
-            for i in range(len(tracked_obstacles_copy)):
-                # Remove obstacle pose from deque list if greater than 1
-                if tracked_obstacles_key_copy[i] in self.tracked_obstacles:
-                    if len(tracked_obstacles_copy[tracked_obstacles_key_copy[i]][3]) > 1:
-                        self.tracked_obstacles[tracked_obstacles_key_copy[i]][3].popleft()
+        # iou, _iou = [], []
+        # checked_obj_scans = None
+        # tracked_obstacles_copy = self.tracked_obstacles.copy()
+        # tracked_obstacles_key_copy = self.tracked_obstacles_keys[:]
+        # if len(tracked_obstacles_copy) == 0:
+        #     for i in range(len(obstacle_scans)):
+        #         unique_id = uuid4()
+        #         # Get tracked obstacles in the following format [<object type>, <coord list>, <distance>, ...<append>]
+        #         _tracked_obs = obstacle_scans[i][:]
+        #         _tracked_obs.append(deque([obstacle_scans[i][1]]))
+        #         _tracked_obs.append(time.time())
+        #         _tracked_obs.append(-1)  # velocity
+        #         _tracked_obs.append([0.0, 0.0])  # velocity X and Y
+        #         # Assign a unique id to tracked obstacles
+        #         self.tracked_obstacles[unique_id] = _tracked_obs
+        #     self.tracked_obstacles_keys = list(self.tracked_obstacles.keys())
+        #     tracked_obstacles_key_copy = self.tracked_obstacles_keys[:]
+        # else:
+        #     # Check if object is associated with IOU score
+        #     val, idx = None, None
+        #     for i in range(len(tracked_obstacles_copy)):
+        #         # Remove obstacle pose from deque list if greater than 1
+        #         if tracked_obstacles_key_copy[i] in self.tracked_obstacles:
+        #             if len(tracked_obstacles_copy[tracked_obstacles_key_copy[i]][3]) > 1:
+        #                 self.tracked_obstacles[tracked_obstacles_key_copy[i]][3].popleft()
 
-                _tracked_obs = list(tracked_obstacles_copy.get(tracked_obstacles_key_copy[i]))[1]
-                if len(confirmed_scan_object) == 0:
-                    # Remove all "tracked" obstacle from tracking list
-                    self.tracked_obstacles.pop(tracked_obstacles_key_copy[i - 1])
-                    self.tracked_obstacles_keys.remove(tracked_obstacles_key_copy[i])
-                else:
-                    for j in range(len(list(confirmed_scan_object))):
-                        _iou.append(utils.get_iou(_tracked_obs, confirmed_scan_object[j][1], 0.0505))
-                        val, idx = max((val, idx) for (idx, val) in enumerate(_iou))  # max iou value and index
-                iou.append(_iou)
-                _iou = []
-                checked_obj_scans = [False] * len(iou[0])
+        #         _tracked_obs = list(tracked_obstacles_copy.get(tracked_obstacles_key_copy[i]))[1]
+        #         if len(confirmed_scan_object) == 0:
+        #             # Remove all "tracked" obstacle from tracking list
+        #             self.tracked_obstacles.pop(tracked_obstacles_key_copy[i - 1])
+        #             self.tracked_obstacles_keys.remove(tracked_obstacles_key_copy[i])
+        #         else:
+        #             for j in range(len(list(confirmed_scan_object))):
+        #                 _iou.append(utils.get_iou(_tracked_obs, confirmed_scan_object[j][1], 0.0505))
+        #                 val, idx = max((val, idx) for (idx, val) in enumerate(_iou))  # max iou value and index
+        #         iou.append(_iou)
+        #         _iou = []
+        #         checked_obj_scans = [False] * len(iou[0])
 
-        iou_copy = iou[:]
-        iou2, _iou2 = [], []
-        reupdate_tracking = False
+        # iou_copy = iou[:]
+        # iou2, _iou2 = [], []
+        # reupdate_tracking = False
 
-        for i in range(len(iou_copy)):
-            if iou_copy[i]:
-                max_value_idx = iou_copy[i].index(max(iou_copy[i]))
-                if max(iou_copy[i]) > 0.0:
-                    tracked_obstacles_copy[tracked_obstacles_key_copy[i]][1] = confirmed_scan_object[max_value_idx][1]
-                    # Update scan distance
-                    tracked_obstacles_copy[tracked_obstacles_key_copy[i]][2] = confirmed_scan_object[max_value_idx][2]
-                    # Append to deque list
-                    tracked_obstacles_copy[tracked_obstacles_key_copy[i]][3].append(
-                        confirmed_scan_object[max_value_idx][1])
-                    # Get one time step
-                    tracked_obstacles_copy[tracked_obstacles_key_copy[i]][4] = time.time() - tracked_obstacles_copy[
-                        tracked_obstacles_key_copy[i]][4]
-                    checked_obj_scans[max_value_idx] = True
-                else:
-                    # Remove object from tracked list
-                    if len(self.tracked_obstacles) > i:
-                        del self.tracked_obstacles[tracked_obstacles_key_copy[i]]
-                        self.tracked_obstacles_keys.pop(i)
+        # for i in range(len(iou_copy)):
+        #     if iou_copy[i]:
+        #         max_value_idx = iou_copy[i].index(max(iou_copy[i]))
+        #         if max(iou_copy[i]) > 0.0:
+        #             tracked_obstacles_copy[tracked_obstacles_key_copy[i]][1] = confirmed_scan_object[max_value_idx][1]
+        #             # Update scan distance
+        #             tracked_obstacles_copy[tracked_obstacles_key_copy[i]][2] = confirmed_scan_object[max_value_idx][2]
+        #             # Append to deque list
+        #             tracked_obstacles_copy[tracked_obstacles_key_copy[i]][3].append(
+        #                 confirmed_scan_object[max_value_idx][1])
+        #             # Get one time step
+        #             tracked_obstacles_copy[tracked_obstacles_key_copy[i]][4] = time.time() - tracked_obstacles_copy[
+        #                 tracked_obstacles_key_copy[i]][4]
+        #             checked_obj_scans[max_value_idx] = True
+        #         else:
+        #             # Remove object from tracked list
+        #             if len(self.tracked_obstacles) > i:
+        #                 del self.tracked_obstacles[tracked_obstacles_key_copy[i]]
+        #                 self.tracked_obstacles_keys.pop(i)
 
-            else:
-                continue
+        #     else:
+        #         continue
 
         # Add the "unadded" current detected object scans to the tracking list
-        if checked_obj_scans is not None and len(confirmed_scan_object) > 0:
-            for i in range(len(checked_obj_scans)):
-                if checked_obj_scans[i] == True:
-                    pass
-                else:  # False or None
-                    if confirmed_scan_object[i][0] == 'o':
-                        # print("NEW OBSTACLE")
-                        unique_id = uuid4()
-                        # Get tracked obstacles in the following format [<object type>, <coord list>, <deque coord
-                        # list>]
-                        _tracked_obs = confirmed_scan_object[i][:]
-                        _tracked_obs.append(deque([confirmed_scan_object[i][1]]))
-                        _tracked_obs.append(time.time())
-                        _tracked_obs.append(-1)  # velocity
-                        _tracked_obs.append([0.0, 0.0])  # velocity X and Y
-                        # Assign a unique id to tracked obstacles
-                        self.tracked_obstacles[unique_id] = _tracked_obs
-                    else:
-                        pass
-                self.tracked_obstacles_keys = list(self.tracked_obstacles.keys())
-                tracked_obstacles_key_copy = self.tracked_obstacles_keys[:]
+        # if checked_obj_scans is not None and len(confirmed_scan_object) > 0:
+        #     for i in range(len(checked_obj_scans)):
+        #         if checked_obj_scans[i] == True:
+        #             pass
+        #         else:  # False or None
+        #             if confirmed_scan_object[i][0] == 'o':
+        #                 # print("NEW OBSTACLE")
+        #                 unique_id = uuid4()
+        #                 # Get tracked obstacles in the following format [<object type>, <coord list>, <deque coord
+        #                 # list>]
+        #                 _tracked_obs = confirmed_scan_object[i][:]
+        #                 _tracked_obs.append(deque([confirmed_scan_object[i][1]]))
+        #                 _tracked_obs.append(time.time())
+        #                 _tracked_obs.append(-1)  # velocity
+        #                 _tracked_obs.append([0.0, 0.0])  # velocity X and Y
+        #                 # Assign a unique id to tracked obstacles
+        #                 self.tracked_obstacles[unique_id] = _tracked_obs
+        #             else:
+        #                 pass
+        #         self.tracked_obstacles_keys = list(self.tracked_obstacles.keys())
+        #         tracked_obstacles_key_copy = self.tracked_obstacles_keys[:]
 
         # Obstacle velocity estimation
-        estimated_obstacle_vel = []
-        for i in range(len(tracked_obstacles_key_copy)):
-            if tracked_obstacles_key_copy[i] in self.tracked_obstacles:
-                if len(self.tracked_obstacles[tracked_obstacles_key_copy[i]][3]) > 1:
-                    _timelapse = self.tracked_obstacles[tracked_obstacles_key_copy[i]][4]
-                    _deque_pose_prev = self.tracked_obstacles[tracked_obstacles_key_copy[i]][3][0]
-                    _deque_pose_next = self.tracked_obstacles[tracked_obstacles_key_copy[i]][3][1]
-                    # Velocity computation
-                    _distance_change = math.hypot(_deque_pose_prev[1] - _deque_pose_next[1],
-                                                  _deque_pose_prev[0] - _deque_pose_next[0])
-                    # _timelapse = self.tracked_obstacles[tracked_obstacles_key_copy[i]][4]
-                    _velocity = _distance_change / _timelapse
+        # estimated_obstacle_vel = []
+        # for i in range(len(tracked_obstacles_key_copy)):
+        #     if tracked_obstacles_key_copy[i] in self.tracked_obstacles:
+        #         if len(self.tracked_obstacles[tracked_obstacles_key_copy[i]][3]) > 1:
+        #             _timelapse = self.tracked_obstacles[tracked_obstacles_key_copy[i]][4]
+        #             _deque_pose_prev = self.tracked_obstacles[tracked_obstacles_key_copy[i]][3][0]
+        #             _deque_pose_next = self.tracked_obstacles[tracked_obstacles_key_copy[i]][3][1]
+        #             # Velocity computation
+        #             _distance_change = math.hypot(_deque_pose_prev[1] - _deque_pose_next[1],
+        #                                           _deque_pose_prev[0] - _deque_pose_next[0])
+        #             # _timelapse = self.tracked_obstacles[tracked_obstacles_key_copy[i]][4]
+        #             _velocity = _distance_change / _timelapse
 
-                    # Append velocity to dictionary (for CP-ttc)
-                    self.tracked_obstacles[tracked_obstacles_key_copy[i]][5] = _velocity
+        #             # Append velocity to dictionary (for CP-ttc)
+        #             self.tracked_obstacles[tracked_obstacles_key_copy[i]][5] = _velocity
 
-        tracked_obstacles_copy = self.tracked_obstacles
-        tracked_obstacles_key_copy = self.tracked_obstacles_keys
+        # tracked_obstacles_copy = self.tracked_obstacles
+        # tracked_obstacles_key_copy = self.tracked_obstacles_keys
 
         # Time to Collision computation with collision cone
-        collision_prob = []
-        ego_score_collision_prob = []
-        _ego_score_collision_prob = 0.0
-        if len(self.agent_pose_deque) == 2:
-            agent_vel = utils.get_timestep_velocity(self.agent_pose_deque, self.agent_vel_timestep)
+        # collision_prob = []
+        # ego_score_collision_prob = []
+        # _ego_score_collision_prob = 0.0
+        # if len(self.agent_pose_deque) == 2:
+        #     agent_vel = utils.get_timestep_velocity(self.agent_pose_deque, self.agent_vel_timestep)
 
-            # Get agent velocity in x and y from Twist message
-            agent_vel_x = -1 * self.linear_twist.x * (math.cos(self.angular_twist.z))
-            agent_vel_y = self.linear_twist.x * (math.sin(self.angular_twist.z))
+        #     # Get agent velocity in x and y from Twist message
+        #     agent_vel_x = -1 * self.linear_twist.x * (math.cos(self.angular_twist.z))
+        #     agent_vel_y = self.linear_twist.x * (math.sin(self.angular_twist.z))
 
-            agent_disp_x = agent_vel_x * self.agent_vel_timestep
-            agent_disp_y = agent_vel_y * self.agent_vel_timestep
+        #     # agent_disp_x = agent_vel_x * self.agent_vel_timestep
+        #     # agent_disp_y = agent_vel_y * self.agent_vel_timestep
 
-            agent_vel2 = self.linear_twist.x
+        #     # agent_vel2 = self.linear_twist.x
 
-            # self.agent_pose_deque[1][0] = self.agent_pose_deque[0][0] + agent_disp_x
-            # self.agent_pose_deque[1][1] = self.agent_pose_deque[0][1] + agent_disp_y
+        #     # self.agent_pose_deque[1][0] = self.agent_pose_deque[0][0] + agent_disp_x
+        #     # self.agent_pose_deque[1][1] = self.agent_pose_deque[0][1] + agent_disp_y
 
-            goal_vel = 0.0
-            obstacle_vel = []
+        #     goal_vel = 0.0
+        #     obstacle_vel = []
 
-            if len(self.tracked_obstacles) == 0:
-                obstacle_vel.append(0.0)
-            else:
-                for i in range(len(self.tracked_obstacles)):
-                    obstacle_vel.append(self.tracked_obstacles[self.tracked_obstacles_keys[i]][5])
+        #     if len(self.tracked_obstacles) == 0:
+        #         obstacle_vel.append(0.0)
+        #     else:
+        #         for i in range(len(self.tracked_obstacles)):
+        #             obstacle_vel.append(self.tracked_obstacles[self.tracked_obstacles_keys[i]][5])
 
-            obstacle_vel = obstacle_vel[0]
+        #     obstacle_vel = obstacle_vel[0]
 
-            # Check if there is a change in pose detected
-            agent_pose_change = self.agent_pose_deque.count(self.agent_pose_deque[0]) == len(self.agent_pose_deque)
+        #     # Check if there is a change in pose detected
+        #     agent_pose_change = self.agent_pose_deque.count(self.agent_pose_deque[0]) == len(self.agent_pose_deque)
 
-            vo_agent_pose_x = self.agent_pose_deque[1][0]
-            vo_agent_pose_y = self.agent_pose_deque[1][1]
-            for i in range(len(tracked_obstacles_key_copy)):
-                vo_change_x, vo_change_y = 0, 0
-                # Compute change in x and y from obstacle velocity information (we use obs. pose deque)
-                if len(self.tracked_obstacles[tracked_obstacles_key_copy[i]][3]) > 1:
-                    _last_pose = self.tracked_obstacles[tracked_obstacles_key_copy[i]][3][0]
-                    _curr_pose = self.tracked_obstacles[tracked_obstacles_key_copy[i]][3][1]
-                    vo_change_x = _last_pose[0] - _curr_pose[0]
-                    vo_change_y = _last_pose[1] - _curr_pose[1]
-                    obstacle_vel_x = vo_change_x / self.agent_vel_timestep
-                    obstacle_vel_y = vo_change_y / self.agent_vel_timestep
-                    self.tracked_obstacles[tracked_obstacles_key_copy[i]][6] = [obstacle_vel_x, obstacle_vel_y]
+        #     vo_agent_pose_x = self.agent_pose_deque[1][0]
+        #     vo_agent_pose_y = self.agent_pose_deque[1][1]
+        #     for i in range(len(tracked_obstacles_key_copy)):
+        #         vo_change_x, vo_change_y = 0, 0
+        #         # Compute change in x and y from obstacle velocity information (we use obs. pose deque)
+        #         if len(self.tracked_obstacles[tracked_obstacles_key_copy[i]][3]) > 1:
+        #             _last_pose = self.tracked_obstacles[tracked_obstacles_key_copy[i]][3][0]
+        #             _curr_pose = self.tracked_obstacles[tracked_obstacles_key_copy[i]][3][1]
+        #             vo_change_x = _last_pose[0] - _curr_pose[0]
+        #             vo_change_y = _last_pose[1] - _curr_pose[1]
+        #             obstacle_vel_x = vo_change_x / self.agent_vel_timestep
+        #             obstacle_vel_y = vo_change_y / self.agent_vel_timestep
+        #             self.tracked_obstacles[tracked_obstacles_key_copy[i]][6] = [obstacle_vel_x, obstacle_vel_y]
 
-                # Compute new robot position based on resultant velocity (Vr - Vo). Use last deque pose because that
-                # is where the robot is headed to. Then, check if this new position is within the Collision cone.
-                vo_agent_pose_x = self.agent_pose_deque[1][0] + vo_change_x
-                vo_agent_pose_y = self.agent_pose_deque[1][1] + vo_change_y
+        #         # Compute new robot position based on resultant velocity (Vr - Vo). Use last deque pose because that
+        #         # is where the robot is headed to. Then, check if this new position is within the Collision cone.
+        #         vo_agent_pose_x = self.agent_pose_deque[1][0] + vo_change_x
+        #         vo_agent_pose_y = self.agent_pose_deque[1][1] + vo_change_y
 
-            distance_to_collision_point = None
-            for i in range(len(tracked_obstacles_key_copy)):
-                distance_to_collision_point = utils.get_collision_point(
-                    [self.agent_pose_deque[0], [vo_agent_pose_x, vo_agent_pose_y]],
-                    self.tracked_obstacles[
-                        tracked_obstacles_key_copy[i]][1],
-                    0.178)  # Turtlebot3 Burger Robot width
+        #     distance_to_collision_point = None
+        #     for i in range(len(tracked_obstacles_key_copy)):
+        #         distance_to_collision_point = utils.get_collision_point(
+        #             [self.agent_pose_deque[0], [vo_agent_pose_x, vo_agent_pose_y]],
+        #             self.tracked_obstacles[
+        #                 tracked_obstacles_key_copy[i]][1],
+        #             0.178)  # Turtlebot3 Burger Robot width
 
-                resultant_vel = agent_vel - obstacle_vel
+        #         resultant_vel = agent_vel - obstacle_vel
 
-                if distance_to_collision_point is not None:
-                    if resultant_vel == 0:
-                        time_to_collision = 0
-                        _collision_prob = 1.0 * (
-                            utils.compute_general_collision_prob(  # original: 1.0 (before ablation)
-                                self.tracked_obstacles[tracked_obstacles_key_copy[i]][2], self.max_scan_range,
-                                self.min_scan_range))
-                    else:
-                        time_to_collision = distance_to_collision_point / resultant_vel
-                        # if time_to_collision != 0:  # added to remove floating by zero error during division
-                        _ego_score_collision_prob = utils.compute_collision_prob(time_to_collision)
-                        _collision_prob = 0.5 * (utils.compute_collision_prob(time_to_collision)) + 0.5 * (
-                            # original: 0.5, 0.5 (before ablation)
-                            utils.compute_general_collision_prob(
-                                self.tracked_obstacles[tracked_obstacles_key_copy[i]][2], self.max_scan_range,
-                                self.min_scan_range))
-                    collision_prob.append([_collision_prob] + self.tracked_obstacles[tracked_obstacles_key_copy[i]][1] \
-                                          + self.tracked_obstacles[tracked_obstacles_key_copy[i]][6])
-                    ego_score_collision_prob.append(_ego_score_collision_prob)
-                    # Append collision probability to dictionary
-                    # self.tracked_obstacles[tracked_obstacles_key_copy[i]][6] = _collision_prob
-                else:
-                    time_to_collision = None
-                    _ego_score_collision_prob = utils.compute_collision_prob(time_to_collision)
-                    _collision_prob = 0.5 * (utils.compute_collision_prob(time_to_collision)) + 0.5 * (
-                        # original: 0.5, 0.5 (before ablation)
-                        utils.compute_general_collision_prob(
-                            self.tracked_obstacles[tracked_obstacles_key_copy[i]][2], self.max_scan_range,
-                            self.min_scan_range))
-                    collision_prob.append([_collision_prob] + self.tracked_obstacles[tracked_obstacles_key_copy[i]][1] \
-                                          + self.tracked_obstacles[tracked_obstacles_key_copy[i]][6])
-                    ego_score_collision_prob.append(_ego_score_collision_prob)
-                    # Append collision probability to dictionary
-                    # self.tracked_obstacles[tracked_obstacles_key_copy[i]][6] = _collision_prob
+        #         if distance_to_collision_point is not None:
+        #             if resultant_vel == 0:
+        #                 time_to_collision = 0
+        #                 _collision_prob = 1.0 * (
+        #                     utils.compute_general_collision_prob(  # original: 1.0 (before ablation)
+        #                         self.tracked_obstacles[tracked_obstacles_key_copy[i]][2], self.max_scan_range,
+        #                         self.min_scan_range))
+        #             else:
+        #                 time_to_collision = distance_to_collision_point / resultant_vel
+        #                 # if time_to_collision != 0:  # added to remove floating by zero error during division
+        #                 _ego_score_collision_prob = utils.compute_collision_prob(time_to_collision)
+        #                 _collision_prob = 0.5 * (utils.compute_collision_prob(time_to_collision)) + 0.5 * (
+        #                     # original: 0.5, 0.5 (before ablation)
+        #                     utils.compute_general_collision_prob(
+        #                         self.tracked_obstacles[tracked_obstacles_key_copy[i]][2], self.max_scan_range,
+        #                         self.min_scan_range))
+        #             collision_prob.append([_collision_prob] + self.tracked_obstacles[tracked_obstacles_key_copy[i]][1] \
+        #                                   + self.tracked_obstacles[tracked_obstacles_key_copy[i]][6])
+        #             ego_score_collision_prob.append(_ego_score_collision_prob)
+        #             # Append collision probability to dictionary
+        #             # self.tracked_obstacles[tracked_obstacles_key_copy[i]][6] = _collision_prob
+        #         else:
+        #             time_to_collision = None
+        #             _ego_score_collision_prob = utils.compute_collision_prob(time_to_collision)
+        #             _collision_prob = 0.5 * (utils.compute_collision_prob(time_to_collision)) + 0.5 * (
+        #                 # original: 0.5, 0.5 (before ablation)
+        #                 utils.compute_general_collision_prob(
+        #                     self.tracked_obstacles[tracked_obstacles_key_copy[i]][2], self.max_scan_range,
+        #                     self.min_scan_range))
+        #             collision_prob.append([_collision_prob] + self.tracked_obstacles[tracked_obstacles_key_copy[i]][1] \
+        #                                   + self.tracked_obstacles[tracked_obstacles_key_copy[i]][6])
+        #             ego_score_collision_prob.append(_ego_score_collision_prob)
+        #             # Append collision probability to dictionary
+        #             # self.tracked_obstacles[tracked_obstacles_key_copy[i]][6] = _collision_prob
 
-            if len(collision_prob) == 0:
-                self.collision_prob = 0.0
-                self.ego_score_collision_prob = 0.0
+            # if len(collision_prob) == 0:
+            #     self.collision_prob = 0.0
+            #     self.ego_score_collision_prob = 0.0
 
-                top_k_obstacles_pose_vel = []
-                top_k_obstacle_collision_prob = []
-                for i in range(self.k_obstacle_count):
-                    top_k_obstacles_pose_vel.append([self.position.x, self.position.y, 0, 0])
+            #     top_k_obstacles_pose_vel = []
+            #     top_k_obstacle_collision_prob = []
+            #     for i in range(self.k_obstacle_count):
+            #         top_k_obstacles_pose_vel.append([self.position.x, self.position.y, 0, 0])
 
-                # Flatten
-                flattened_top_k_obstacles_pose_vel = []
-                for i in range(len(top_k_obstacles_pose_vel)):
-                    flattened_top_k_obstacles_pose_vel += top_k_obstacles_pose_vel[i]
+            #     # Flatten
+            #     flattened_top_k_obstacles_pose_vel = []
+            #     for i in range(len(top_k_obstacles_pose_vel)):
+            #         flattened_top_k_obstacles_pose_vel += top_k_obstacles_pose_vel[i]
 
-                self.closest_obstacle_pose_vel = flattened_top_k_obstacles_pose_vel
+            #     self.closest_obstacle_pose_vel = flattened_top_k_obstacles_pose_vel
 
-            else:
-                self.ego_score_collision_prob = max(ego_score_collision_prob)
+            # else:
+            #     self.ego_score_collision_prob = max(ego_score_collision_prob)
 
-                # Find top K obstacles with highest CP, sort according to first elem of sublist
-                _top_k_collision_prob = sorted(collision_prob, key=lambda x: x[0], reverse=True)
-                top_k_collision_prob = _top_k_collision_prob[-self.k_obstacle_count:]
+            #     # Find top K obstacles with highest CP, sort according to first elem of sublist
+            #     _top_k_collision_prob = sorted(collision_prob, key=lambda x: x[0], reverse=True)
+            #     top_k_collision_prob = _top_k_collision_prob[-self.k_obstacle_count:]
 
-                self.collision_prob = top_k_collision_prob[0][0]
+            #     self.collision_prob = top_k_collision_prob[0][0]
 
-                # Get pose (x, y) and vels (Vx, Vy) of top K obstacles
-                top_k_obstacles_pose_vel = []
-                top_k_obstacle_collision_prob = []
-                for i in range(len(top_k_collision_prob)):
-                    top_k_obstacles_pose_vel.append(top_k_collision_prob[i][1:])  # remove CP
-                    top_k_obstacle_collision_prob.append(top_k_collision_prob[i][0])
+            #     # Get pose (x, y) and vels (Vx, Vy) of top K obstacles
+            #     top_k_obstacles_pose_vel = []
+            #     top_k_obstacle_collision_prob = []
+            #     for i in range(len(top_k_collision_prob)):
+            #         top_k_obstacles_pose_vel.append(top_k_collision_prob[i][1:])  # remove CP
+            #         top_k_obstacle_collision_prob.append(top_k_collision_prob[i][0])
 
-                # Check if tracked obstacle is less than K, use placeholder values if it is
-                if len(top_k_obstacles_pose_vel) < (self.k_obstacle_count * 4):
-                    diff = self.k_obstacle_count - len(top_k_obstacles_pose_vel)
-                    for i in range(diff):
-                        top_k_obstacles_pose_vel.append([self.position.x, self.position.y, 0, 0])
+            #     # Check if tracked obstacle is less than K, use placeholder values if it is
+            #     if len(top_k_obstacles_pose_vel) < (self.k_obstacle_count * 4):
+            #         diff = self.k_obstacle_count - len(top_k_obstacles_pose_vel)
+            #         for i in range(diff):
+            #             top_k_obstacles_pose_vel.append([self.position.x, self.position.y, 0, 0])
 
-                # Flatten
-                flattened_top_k_obstacles_pose_vel = []
-                for i in range(len(top_k_obstacles_pose_vel)):
-                    flattened_top_k_obstacles_pose_vel += top_k_obstacles_pose_vel[i]
+            #     # Flatten
+            #     flattened_top_k_obstacles_pose_vel = []
+            #     for i in range(len(top_k_obstacles_pose_vel)):
+            #         flattened_top_k_obstacles_pose_vel += top_k_obstacles_pose_vel[i]
 
-                self.closest_obstacle_pose_vel = flattened_top_k_obstacles_pose_vel
-                # self.closest_obstacle_pose = _max_cp_closest_obs[1]
-                # self.closest_obstacle_vel = _max_cp_closest_obs[6]
+            #     self.closest_obstacle_pose_vel = flattened_top_k_obstacles_pose_vel
+            #     # self.closest_obstacle_pose = _max_cp_closest_obs[1]
+            #     # self.closest_obstacle_vel = _max_cp_closest_obs[6]
 
             # Visualize dynamic obstacles on RVIZ (For video demo/debugging) (for K = 8)
-            _obstacle_pose_text = [Marker(), Marker(), Marker(), Marker(), Marker(),
-                                   Marker(), Marker(), Marker(), Marker(), Marker()]
-            _obstacle_pose_shape = [Marker(), Marker(), Marker(), Marker(), Marker(),
-                                    Marker(), Marker(), Marker(), Marker(), Marker()]
-            _obstacle_pose_state = [False, False, False]
-            _robot_pose = [self.position.x, self.position.y, self.robot_yaw]
-            _yaw_change = self.robot_yaw - self.previous_yaw
+            # _obstacle_pose_text = [Marker(), Marker(), Marker(), Marker(), Marker(),
+            #                        Marker(), Marker(), Marker(), Marker(), Marker()]
+            # _obstacle_pose_shape = [Marker(), Marker(), Marker(), Marker(), Marker(),
+            #                         Marker(), Marker(), Marker(), Marker(), Marker()]
+            # _obstacle_pose_state = [False, False, False]
+            # _robot_pose = [self.position.x, self.position.y, self.robot_yaw]
+            # _yaw_change = self.robot_yaw - self.previous_yaw
 
-            # Obstacle RVIZ positions
-            for i in range(len(top_k_obstacles_pose_vel)):
-                try:  # Handle index out of range error
-                    _obstacle_pose_text[i] = utils.create_rviz_visualization_text_marker(_obstacle_pose_text[i],
-                                                                                         _robot_pose,
-                                                                                         top_k_obstacles_pose_vel[i],
-                                                                                         top_k_obstacle_collision_prob[
-                                                                                             i])
-                    _obstacle_pose_shape[i] = utils.create_rviz_visualization_shape_marker(_obstacle_pose_shape[i],
-                                                                                           _robot_pose,
-                                                                                           top_k_obstacles_pose_vel[i],
-                                                                                           top_k_obstacle_collision_prob[
-                                                                                               i])
-                    if _obstacle_pose_text[i].pose.position.x != 0.0 and _obstacle_pose_text[i].pose.position.y != 0.0:
-                        _obstacle_pose_state[i] = True
-                except IndexError:
-                    # print("Index out of range for rviz tracked obstacle publisher")
-                    pass
-                continue
+            # # Obstacle RVIZ positions
+            # for i in range(len(top_k_obstacles_pose_vel)):
+            #     try:  # Handle index out of range error
+            #         _obstacle_pose_text[i] = utils.create_rviz_visualization_text_marker(_obstacle_pose_text[i],
+            #                                                                              _robot_pose,
+            #                                                                              top_k_obstacles_pose_vel[i],
+            #                                                                              top_k_obstacle_collision_prob[
+            #                                                                                  i])
+            #         _obstacle_pose_shape[i] = utils.create_rviz_visualization_shape_marker(_obstacle_pose_shape[i],
+            #                                                                                _robot_pose,
+            #                                                                                top_k_obstacles_pose_vel[i],
+            #                                                                                top_k_obstacle_collision_prob[
+            #                                                                                    i])
+            #         if _obstacle_pose_text[i].pose.position.x != 0.0 and _obstacle_pose_text[i].pose.position.y != 0.0:
+            #             _obstacle_pose_state[i] = True
+            #     except IndexError:
+            #         # print("Index out of range for rviz tracked obstacle publisher")
+            #         pass
+            #     continue
 
             # Goal position marker
-            _goal_pose_marker_obj = Marker()
-            _goal_pose_marker = utils.create_rviz_visualization_shape_marker(_goal_pose_marker_obj, _robot_pose,
-                                                                             [0, 0], 0.0, mtype="robot")
+            # _goal_pose_marker_obj = Marker()
+            # _goal_pose_marker = utils.create_rviz_visualization_shape_marker(_goal_pose_marker_obj, _robot_pose,
+            #                                                                  [0, 0], 0.0, mtype="robot")
 
-            # Waypoint position marker
-            _waypoint_pose_marker_obj = Marker()
-            _waypoint_pose_marker = utils.create_rviz_visualization_shape_marker(_waypoint_pose_marker_obj, _robot_pose,
-                                                                                 [0, 0], 0.0, mtype="robot",
-                                                                                 goal_pose=[
-                                                                                     self.waypoint_desired_point.x,
-                                                                                     self.waypoint_desired_point.y])
+            # # Waypoint position marker
+            # _waypoint_pose_marker_obj = Marker()
+            # _waypoint_pose_marker = utils.create_rviz_visualization_shape_marker(_waypoint_pose_marker_obj, _robot_pose,
+            #                                                                      [0, 0], 0.0, mtype="robot",
+            #                                                                      goal_pose=[
+            #                                                                          self.waypoint_desired_point.x,
+            #                                                                          self.waypoint_desired_point.y])
 
-            text_publishers = [self.pub_obs1_pose_text, self.pub_obs2_pose_text, self.pub_obs3_pose_text]
-            shape_publishers = [self.pub_obs1_pose_shape, self.pub_obs2_pose_shape, self.pub_obs3_pose_shape]
-            for i in range(len(_obstacle_pose_state)):
-                text_publishers[i].publish(_obstacle_pose_text[i])
-                shape_publishers[i].publish(_obstacle_pose_shape[i])
-                if not _obstacle_pose_state[i]:
-                    text_publishers[i].publish(_goal_pose_marker)
-                    shape_publishers[i].publish(_goal_pose_marker)
+            # text_publishers = [self.pub_obs1_pose_text, self.pub_obs2_pose_text, self.pub_obs3_pose_text]
+            # shape_publishers = [self.pub_obs1_pose_shape, self.pub_obs2_pose_shape, self.pub_obs3_pose_shape]
+            # for i in range(len(_obstacle_pose_state)):
+            #     text_publishers[i].publish(_obstacle_pose_text[i])
+            #     shape_publishers[i].publish(_obstacle_pose_shape[i])
+            #     if not _obstacle_pose_state[i]:
+            #         text_publishers[i].publish(_goal_pose_marker)
+            #         shape_publishers[i].publish(_goal_pose_marker)
 
             # Get DTGP and compute goal reaching collision probability (NOT USED)
-            distance_to_goal_point = utils.get_collision_point(self.agent_pose_deque, [self.original_desired_point.x,
-                                                                                       self.original_desired_point.y],
-                                                               0.2)
-            resultant_goal_vel = agent_vel - goal_vel
-            if distance_to_goal_point is not None:
-                if resultant_goal_vel == 0:
-                    time_to_goal = 0
-                    self.goal_reaching_prob = 0.0
-                else:
-                    time_to_goal = distance_to_goal_point / resultant_goal_vel
-                    self.goal_reaching_prob = 1.0 * (utils.compute_collision_prob(time_to_goal)) + 0.0 * (
-                        utils.compute_general_collision_prob(self.get_distance_to_goal(self.position),
-                                                             self.max_scan_range,
-                                                             self.min_scan_range))
-            else:
-                time_to_goal = None
-                self.goal_reaching_prob = 1.0 * (utils.compute_collision_prob(time_to_goal)) + 0.0 * (
-                    utils.compute_general_collision_prob(self.get_distance_to_goal(self.position),
-                                                         self.max_scan_range,
-                                                         self.min_scan_range))
+            # distance_to_goal_point = utils.get_collision_point(self.agent_pose_deque, [self.original_desired_point.x,
+            #                                                                            self.original_desired_point.y],
+            #                                                    0.2)
+            # resultant_goal_vel = agent_vel - goal_vel
+            # if distance_to_goal_point is not None:
+            #     if resultant_goal_vel == 0:
+            #         time_to_goal = 0
+            #         self.goal_reaching_prob = 0.0
+            #     else:
+            #         time_to_goal = distance_to_goal_point / resultant_goal_vel
+            #         self.goal_reaching_prob = 1.0 * (utils.compute_collision_prob(time_to_goal)) + 0.0 * (
+            #             utils.compute_general_collision_prob(self.get_distance_to_goal(self.position),
+            #                                                  self.max_scan_range,
+            #                                                  self.min_scan_range))
+            # else:
+            #     time_to_goal = None
+            #     self.goal_reaching_prob = 1.0 * (utils.compute_collision_prob(time_to_goal)) + 0.0 * (
+            #         utils.compute_general_collision_prob(self.get_distance_to_goal(self.position),
+            #                                              self.max_scan_range,
+            #                                              self.min_scan_range))
 
             # FIFO and reset time
-            if len(self.agent_pose_deque) > 1:
-                self.agent_pose_deque.popleft()
-            # Reset timer
-            for i in range(len(tracked_obstacles_key_copy)):
-                self.tracked_obstacles[tracked_obstacles_key_copy[i]][4] = time.time()
-            self.vel_t0 = -1
+            # if len(self.agent_pose_deque) > 1:
+            #     self.agent_pose_deque.popleft()
+            # # Reset timer
+            # for i in range(len(tracked_obstacles_key_copy)):
+            #     self.tracked_obstacles[tracked_obstacles_key_copy[i]][4] = time.time()
+            # self.vel_t0 = -1
 
         # Get safety and ego safety violation counts
-        for i in range(len(obstacle_scans)):
-            if obstacle_scans[i][2] < 0.140:  # 0.178 (robot dimension width) * 78.7% of width
-                self.ego_safety_violation_count += 1
-                break
+        # for i in range(len(obstacle_scans)):
+        #     if obstacle_scans[i][2] < 0.140:  # 0.178 (robot dimension width) * 78.7% of width
+        #         self.ego_safety_violation_count += 1
+        #         break
 
-        if self.ego_score_collision_prob > 0.4:  # 0.4 <-- original, thesis
-            self.social_safety_violation_count += 1
+        # if self.ego_score_collision_prob > 0.4:  # 0.4 <-- original, thesis
+        #     self.social_safety_violation_count += 1
 
         # To compare against previous tracking list when the object recognition fails (lost tracking)
-        self.prev_tracked_obstacles = tracked_obstacles_copy
-        self.prev_tracked_obstacles_key = tracked_obstacles_key_copy
+        # self.prev_tracked_obstacles = tracked_obstacles_copy
+        # self.prev_tracked_obstacles_key = tracked_obstacles_key_copy
 
         if not self.done:
-            if min(current_scans) < self.min_scan_range:
+            if data_bumper:
                 print("DONE: MINIMUM RANGE")
-                print("MINIMUM: ", str(min(current_scans)))
+                # print("MINIMUM: ", str(min(current_scans)))
                 self.done = True
 
             if self.is_in_true_desired_position(self.position):
@@ -1029,7 +1029,7 @@ class Env:
         #Fungsi CNN
         cnn_result = utils.cnn(data_cam)
 
-        state = (data_laser + goal_heading_distance + agent_position + agent_orientation + agent_velocity
+        state = (scan_range + goal_heading_distance + agent_position + agent_orientation + agent_velocity
                  + cnn_result + data_bumper)
 
         # Round items in state to 2 decimal places
