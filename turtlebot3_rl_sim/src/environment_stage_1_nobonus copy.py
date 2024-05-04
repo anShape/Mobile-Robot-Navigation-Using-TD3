@@ -1214,11 +1214,15 @@ class Env:
         data = None
         while data is None:
             try:
-                data = rospy.wait_for_message('scan', LaserScan, timeout=5)
+                data_laser = rospy.wait_for_message('scan', LaserScan, timeout=5)
+                data_bumper = rospy.wait_for_message('bumper_contact', ContactsState, timeout=5)
+                data_cam = rospy.wait_for_message('camera/depth/image_raw', Image, timeout=5)
+                bridge = CvBridge()
+                data_cam = bridge.imgmsg_to_cv2(data_cam, desired_encoding='passthrough')
             except:
                 pass
 
-        state, done = self.get_state(data, step_counter, action)
+        state, done = self.get_state(data_laser, data_bumper, data_cam, step_counter, action)
         reward, done = self.compute_reward(state, step_counter, done)
 
         return np.asarray(state), reward, done
@@ -1237,7 +1241,6 @@ class Env:
                 data_laser = rospy.wait_for_message('scan', LaserScan, timeout=5)
                 data_bumper = rospy.wait_for_message('bumper_contact', ContactsState, timeout=5)
                 data_cam = rospy.wait_for_message('camera/depth/image_raw', Image, timeout=5)
-                #BIKIN FUNGSI CNN
                 bridge = CvBridge()
                 data_cam = bridge.imgmsg_to_cv2(data_cam, desired_encoding='passthrough')
             except:
