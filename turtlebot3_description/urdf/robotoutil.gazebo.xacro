@@ -180,18 +180,51 @@
     </sensor>
   </gazebo>
   
-  <gazebo reference="cover_link">
+  <!-- <gazebo reference="cover_link">
     <sensor name='bumper_contact' type='contact'>
       <always_on>true</always_on>
       <plugin name="my_plugin" filename="libgazebo_ros_bumper.so">
         <bumperTopicName>bumper_contact</bumperTopicName>
         <frameName>bumper</frameName>
       </plugin>
-       <!-- <plugin name="my_plugin" filename="libcontact.so"/> -->
         <contact>
           <collision>base_footprint_fixed_joint_lump__bumper_collision_collision_3</collision>
         </contact>
         <update_rate> 1000 </update_rate>
     </sensor>
+  </gazebo> -->
+
+  <gazebo reference="bumper_scan">
+    <material>Gazebo/DarkGrey</material>
+    <sensor type="ray" name="lds_lfcd_sensor">
+      <pose>0 0 0 0 0 0</pose>
+      <visualize>$(arg laser_visual)</visualize>
+      <update_rate>1800</update_rate>
+      <ray>
+        <scan>
+          <horizontal>
+            <samples>360</samples> <!--360 original, e.g 37 scans is actually 36 scans if we remove the duplicate scan at the end of the scan list-->
+            <resolution>1</resolution>
+            <min_angle>0.0</min_angle>
+            <max_angle>6.28</max_angle>
+          </horizontal>
+        </scan>
+        <range>
+          <min>0.23</min> <!--original: 0.120 -->
+          <max>0.24</max> <!--original: 7.5-->
+          <resolution>0.015</resolution>
+        </range>
+        <noise>
+          <type>gaussian</type>
+          <mean>0.0</mean>
+          <stddev>0.00</stddev><!--original: 0.01-->
+        </noise>
+      </ray>
+      <plugin name="gazebo_ros_lds_lfcd_controller" filename="libgazebo_ros_laser.so">
+        <topicName>/bumper_scan</topicName>
+        <frameName>bumper_scan</frameName>
+      </plugin>
+    </sensor>
   </gazebo>
+  
 </robot> 

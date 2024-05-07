@@ -224,7 +224,7 @@
     </inertial>
   </link>
 
-    <link name="bumper">
+    <link name="bumper_scan">
     <visual>
       <origin xyz="0 0 0.0" rpy="0 0 0"/>
       <geometry>
