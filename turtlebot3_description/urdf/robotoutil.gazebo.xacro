@@ -210,8 +210,8 @@
           </horizontal>
         </scan>
         <range>
-          <min>0.23</min> <!--original: 0.120 -->
-          <max>0.24</max> <!--original: 7.5-->
+          <min>0.22</min> <!--original: 0.120 -->
+          <max>0.3</max> <!--original: 7.5-->
           <resolution>0.015</resolution>
         </range>
         <noise>

@@ -38,7 +38,6 @@ from collections import deque
 from uuid import uuid4
 from itertools import chain
 import utils
-import rospy
 
 
 class Env:
@@ -1217,7 +1216,7 @@ class Env:
         while data is None:
             try:
                 data_laser = rospy.wait_for_message('scan', LaserScan, timeout=5)
-                data_bumper = rospy.wait_for_message('bumper_contact', ContactsState, timeout=5)
+                data_bumper = utils.get_bumper_data()
                 data_cam = rospy.wait_for_message('camera/depth/image_raw', Image, timeout=5)
                 bridge = CvBridge()
                 data_cam = bridge.imgmsg_to_cv2(data_cam, desired_encoding='passthrough')
@@ -1241,7 +1240,7 @@ class Env:
         while data_laser is None:
             try:
                 data_laser = rospy.wait_for_message('scan', LaserScan, timeout=5)
-                data_bumper = rospy.wait_for_message('bumper_contact', ContactsState, timeout=5)
+                data_bumper = utils.get_bumper_data()
                 data_cam = rospy.wait_for_message('camera/depth/image_raw', Image, timeout=5)
                 bridge = CvBridge()
                 data_cam = bridge.imgmsg_to_cv2(data_cam, desired_encoding='passthrough')

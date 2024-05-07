@@ -12,6 +12,7 @@ from collections import deque
 import tensorflow as tf
 import numpy as np
 from PIL import Image
+from sensor_msgs.msg import LaserScan
 
 from tf.transformations import euler_from_quaternion
 from shapely.geometry import LineString
@@ -613,3 +614,12 @@ def cnn(image):
     # print(conv_layer.shape)
     # print("tes")
     return conv_layer
+
+def get_bumper_data():
+    collision = False
+    bumper_data = rospy.wait_for_message('/bumper_scan', LaserScan)
+    bumper_data = get_scan_ranges(bumper_data, 360, 0.3)
+    bumper_data = np.array(bumper_data)
+    if min(bumper_data) < 0.24:
+        collision = True
+    return collision
