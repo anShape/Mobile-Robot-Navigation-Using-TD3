@@ -1031,6 +1031,8 @@ class Env:
 
         state = (scan_range + goal_heading_distance + agent_position + agent_orientation + agent_velocity
                  + cnn_result + data_bumper)
+        
+        print("INI PANJANG STATE: ", len(state))
 
         # Round items in state to 2 decimal places
         state = list(np.around(np.array(state), 3))
