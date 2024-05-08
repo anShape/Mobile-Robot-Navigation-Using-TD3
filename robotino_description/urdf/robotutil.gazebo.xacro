@@ -196,14 +196,14 @@
 
   <gazebo reference="bumper_scan">
     <material>Gazebo/DarkGrey</material>
-    <sensor type="ray" name="lds_lfcd_sensor">
+    <sensor type="ray" name="lfcd_sensor">
       <pose>0 0 0 0 0 0</pose>
-      <visualize>$(arg laser_visual)</visualize>
+      <visualize>false</visualize>
       <update_rate>1800</update_rate>
       <ray>
         <scan>
           <horizontal>
-            <samples>100</samples> <!--360 original, e.g 37 scans is actually 36 scans if we remove the duplicate scan at the end of the scan list-->
+            <samples>50</samples> <!--360 original, e.g 37 scans is actually 36 scans if we remove the duplicate scan at the end of the scan list-->
             <resolution>1</resolution>
             <min_angle>0.0</min_angle>
             <max_angle>6.28</max_angle>
