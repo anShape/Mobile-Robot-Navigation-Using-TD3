@@ -61,7 +61,7 @@ if __name__ == '__main__':
         softupdate_coefficient = rospy.get_param("/robotino/tau")
         batch_size = 128
         memory_size = 1000000
-        network_inputs = 530  # 370 #74 #38 #54  # State dimension
+        network_inputs = 577  # 370 #74 #38 #54  # State dimension
         hidden_layers = 256  # Hidden dimension
         network_outputs = 2  # Action dimension
         action_v_max = 0.22  # 0.22  # m/s
@@ -122,6 +122,7 @@ if __name__ == '__main__':
             state = np.float32(state)
             action = td3_trainer.act(state, step, add_noise=True)
             _action = action.flatten().tolist()
+            # print("SEBELUM STEP")
             observation, reward, done = env.step(_action, step + 1, mode="continuous")
             success_episode, failure_episode = env.get_episode_status()
             cumulated_reward += reward

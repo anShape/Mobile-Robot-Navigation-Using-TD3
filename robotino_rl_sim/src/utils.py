@@ -54,9 +54,22 @@ def remove_qfile_if_exist(outdir, file):
         pass
 
 
+# def record_data(data, outdir, filename):
+#     file_exists = os.path.isfile(outdir + "/" + filename + ".csv")
+#     with open(outdir + "/" + filename + ".csv", "a") as fp:
+#         headers = ['episode_number', 'success_episode', 'failure_episode', 'episode_reward', 'episode_step',
+#                    'ego_safety_score', 'social_safety_score', 'timelapse']
+#         writer = csv.DictWriter(fp, delimiter=',', lineterminator='\n', fieldnames=headers)
+
+#         if not file_exists:
+#             writer.writeheader()  # file doesn't exist yet, write a header
+
+#         wr = csv.writer(fp, dialect='excel')
+#         wr.writerow(data)
+
 def record_data(data, outdir, filename):
     file_exists = os.path.isfile(outdir + "/" + filename + ".csv")
-    with open(outdir + "/" + filename + ".csv", "a") as fp:
+    with open(outdir + "/" + filename + ".csv", "w") as fp:
         headers = ['episode_number', 'success_episode', 'failure_episode', 'episode_reward', 'episode_step',
                    'ego_safety_score', 'social_safety_score', 'timelapse']
         writer = csv.DictWriter(fp, delimiter=',', lineterminator='\n', fieldnames=headers)
@@ -66,7 +79,6 @@ def record_data(data, outdir, filename):
 
         wr = csv.writer(fp, dialect='excel')
         wr.writerow(data)
-
 
 def get_sample_from_cluster(kmeans):  # numpy
     # Nice Pythonic way to get the indices of the points for each corresponding cluster
@@ -318,7 +330,7 @@ def get_local_goal_waypoints(agent_pose, goal_pose, boundary_radius, epsilon=0.0
         goal_waypoints = [-(goal_pose[0] + epsilon), goal_pose[1] + epsilon]
         # print("this is else")
     
-    print("this is get local goal_waypoints: " + str(goal_waypoints))
+    # print("this is get local goal_waypoints: " + str(goal_waypoints))
 
     return goal_waypoints
 
@@ -613,13 +625,18 @@ def cnn(image):
     # conv_layer = tf.keras.layers.MaxPooling2D(2, 2)(conv_layer)
     # print(conv_layer.shape)
     # print("tes")
+    conv_layer = tf.keras.layers.Flatten()(conv_layer)
+    conv_layer = conv_layer.numpy()
+    conv_layer = conv_layer[0]
+    conv_layer = np.nan_to_num(conv_layer)
+    conv_layer = conv_layer.tolist()
     return conv_layer
 
 def get_bumper_data():
-    collision = False
+    collision = [0]
     bumper_data = rospy.wait_for_message('/bumper_scan', LaserScan)
-    bumper_data = get_scan_ranges(bumper_data, 360, 0.3)
+    bumper_data = get_scan_ranges(bumper_data, 49, 0.27)
     bumper_data = np.array(bumper_data)
     if min(bumper_data) < 0.24:
-        collision = True
+        collision[0] = 1
     return collision

@@ -1043,8 +1043,25 @@ class Env:
         goal_heading_distance = [heading_to_goal, distance_to_goal]
         general_obs_distance = current_scans
 
+        print("bag 1: ", general_obs_distance)
+        print("bag 2: ", goal_heading_distance)
+        print("bag 3: ", agent_position)
+        print("bag 4: ", agent_orientation)
+        print("bag 5: ", agent_velocity)
+        print("bag 6: ", obstacle_position_velocity)
+        print("bag 1: ", type(general_obs_distance))
+        print("bag 2: ", type(goal_heading_distance))
+        print("bag 3: ", type(agent_position))
+        print("bag 4: ", type(agent_orientation))
+        print("bag 5: ", type(agent_velocity))
+        print("bag 6: ", type(obstacle_position_velocity))
+              
+
         state = (general_obs_distance + goal_heading_distance + agent_position + agent_orientation + agent_velocity
                  + obstacle_position_velocity)
+        
+        print("PANJANG STATE: ", len(state))
+        print("INI STATE: ", state)
 
         # print("GENERAL OBS D: ", len(general_obs_distance))
         # print("GOAL HEADING D: ", len(goal_heading_distance))

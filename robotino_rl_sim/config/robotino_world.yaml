@@ -3,14 +3,14 @@ robotino: #namespace
     linear_turn_speed: 0.05 # Linear speed when turning
     angular_speed: 0.3 # Angular speed when turning Left or Right
 
-    scan_ranges: 360 #  Number of scans to use, e.g 37 means 36 scans because the last scan is the same as the first scan
-    max_scan_range: 0.6
-    min_scan_range: 0.12 # Change to 0.0 for testing (to get reliable social and ego score readings)
+    # scan_ranges: 360 #  Number of scans to use, e.g 37 means 36 scans because the last scan is the same as the first scan
+    # max_scan_range: 0.6
+    # min_scan_range: 0.12 # Change to 0.0 for testing (to get reliable social and ego score readings)
 
     # DIY
-    # scan_ranges: 10 #  Number of scans to use, e.g 37 means 36 scans because the last scan is the same as the first scan
-    # max_scan_range: 0.53
-    # min_scan_range: 0.23 # Change to 0.0 for testing (to get reliable social and ego score readings)
+    scan_ranges: 10 #  Number of scans to use, e.g 37 means 36 scans because the last scan is the same as the first scan
+    max_scan_range: 0.53
+    min_scan_range: 0.23 # Change to 0.0 for testing (to get reliable social and ego score readings)
 
     desired_pose:
       x: -1 # Change to -2.0 for testing environment

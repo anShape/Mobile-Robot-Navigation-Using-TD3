@@ -281,7 +281,7 @@ class Env:
         self.robot_yaw = yaw
 
         if not self.done:
-            if data_bumper:
+            if data_bumper[0] == 1:
                 print("DONE: MINIMUM RANGE")
                 # print("MINIMUM: ", str(min(current_scans)))
                 self.done = True
@@ -305,8 +305,6 @@ class Env:
 
         state = (scan_range + goal_heading_distance + agent_position + agent_orientation + agent_velocity
                  + cnn_result + data_bumper)
-        
-        print("INI PANJANG STATE: ", len(state))
 
         # Round items in state to 2 decimal places
         state = list(np.around(np.array(state), 3))
@@ -478,7 +476,6 @@ class Env:
         if end_timestep < 0.05:
             time.sleep(0.05 - end_timestep)
             end_timestep += 0.05 - end_timestep + 0.1  # Without 0.1, the velocity is doubled
-
         # Get agent's position in a queue list. This is for collision cone implementation.
         self.agent_pose_deque.append([round(self.position.x, 3), round(self.position.y, 3)])
         self.agent_vel_timestep = end_timestep
@@ -486,9 +483,10 @@ class Env:
 
         # Update previous robot yaw, to check for heading changes, for RVIZ tracking visualization
         self.previous_yaw = self.robot_yaw
-
-        data = None
-        while data is None:
+        data_laser = None
+        data_bumper = None
+        data_cam = None
+        while data_laser is None or data_bumper is None or data_cam is None:
             try:
                 data_laser = rospy.wait_for_message('scan', LaserScan, timeout=5)
                 data_bumper = utils.get_bumper_data()
@@ -497,7 +495,7 @@ class Env:
                 data_cam = bridge.imgmsg_to_cv2(data_cam, desired_encoding='passthrough')
             except:
                 pass
-
+        
         state, done = self.get_state(data_laser, data_bumper, data_cam, step_counter, action)
         reward, done = self.compute_reward(state, step_counter, done)
 
@@ -526,9 +524,9 @@ class Env:
         self.previous_distance = self.get_distance_to_goal(self.position)
         self.previous_heading = self.get_heading_to_goal(self.position, self.orientation)
         self.previous_yaw = 3.14
-        print("data bumper: ", data_bumper)
-        state, _ = self.get_state(data_laser, data_bumper, data_cam) # <-------- BARU NYAMPE SINI
-
+        # print("data bumper: ", data_bumper)
+        state, _ = self.get_state(data_laser, data_bumper, data_cam) 
+        # print("RESET STATE: ", state)
         # Temporary (delete)
         self.step_reward_count = 0
         self.dtg_reward_count = 0
