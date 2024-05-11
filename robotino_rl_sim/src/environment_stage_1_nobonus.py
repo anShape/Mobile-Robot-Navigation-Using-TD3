@@ -241,7 +241,6 @@ class Env:
     def get_state(self, data_laser, data_bumper, data_cam, step_counter=0, action=[0, 0]):
 
         if step_counter == 1:
-            print("ini step counter 1")
             # Get updated waypoints according to the Point Of Intersection at circle (Robot FOV)
             goal_waypoints = utils.get_local_goal_waypoints([self.position.x, self.position.y],
                                                             [self.original_desired_point.x,
@@ -312,8 +311,8 @@ class Env:
         return state, self.done
 
     def compute_reward(self, state, step_counter, done):
-        current_heading = state[359]
-        current_distance = state[360]
+        current_heading = state[9]
+        current_distance = state[10]
 
         distance_difference = current_distance - self.previous_distance
         heading_difference = current_heading - self.previous_heading
@@ -328,13 +327,13 @@ class Env:
             self.forward_action_reward_count += 1
             action_reward = 5
         if self.last_action == "TURN_LEFT":
-            self.left_turn_action_reward_count += 1
+            self.left_turn_action_reward_count += 0 # originial 1
             action_reward = 1
         if self.last_action == "TURN_RIGHT":
-            self.right_turn_action_reward_count += 1
+            self.right_turn_action_reward_count += 0 # original 1
             action_reward = 1
         if self.last_action == "STOP":
-            self.stop_action_reward_count += 1
+            self.stop_action_reward_count += 0 # original 1
             action_reward = 1
 
         # Distance to goal reward
@@ -386,7 +385,7 @@ class Env:
                                                              boundary_radius=0.3, epsilon=0.2) #original is 0.3
             self.waypoint_desired_point.x = goal_waypoints[0]
             self.waypoint_desired_point.y = goal_waypoints[1]
-            waypoint_reward = 200
+            waypoint_reward = 10 # original 200
             print("Change desired point")
             print(self.waypoint_desired_point)
 

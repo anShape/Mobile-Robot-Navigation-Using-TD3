@@ -122,7 +122,6 @@ if __name__ == '__main__':
             state = np.float32(state)
             action = td3_trainer.act(state, step, add_noise=True)
             _action = action.flatten().tolist()
-            # print("SEBELUM STEP")
             observation, reward, done = env.step(_action, step + 1, mode="continuous")
             success_episode, failure_episode = env.get_episode_status()
             cumulated_reward += reward
