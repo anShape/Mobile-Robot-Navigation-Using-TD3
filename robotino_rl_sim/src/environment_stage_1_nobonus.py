@@ -73,6 +73,11 @@ class Env:
         self.starting_point.y = rospy.get_param("/robotino/starting_pose/y")
         self.starting_point.z = rospy.get_param("/robotino/starting_pose/z")
 
+        self.prev_pos = Point()
+        self.prev_pos.x = rospy.get_param("/robotino/starting_pose/x")
+        self.prev_pos.y = rospy.get_param("/robotino/starting_pose/y")
+        self.prev_pos.z = rospy.get_param("/robotino/starting_pose/z")
+
         self.original_desired_point = Point()
         self.original_desired_point.x = rospy.get_param("/robotino/desired_pose/x")
         self.original_desired_point.y = rospy.get_param("/robotino/desired_pose/y")
@@ -314,6 +319,17 @@ class Env:
         current_heading = state[9]
         current_distance = state[10]
 
+        penalty_loop = 0
+
+        if (step_counter % 50) == 0:
+            travel_x = self.prev_pos.x - self.position.x
+            travel_y = self.prev_pos.y - self.position.y
+            self.prev_pos.x = self.position.x
+            self.prev_pos.y = self.position.y
+            if travel_x < 0.5 and travel_y < 0.5:
+                print("Robot is stuck in a loop")
+                penalty_loop = -200
+
         distance_difference = current_distance - self.previous_distance
         heading_difference = current_heading - self.previous_heading
 
@@ -324,16 +340,16 @@ class Env:
 
         # Action reward
         if self.last_action == "FORWARD":
-            self.forward_action_reward_count += 1
-            action_reward = 5
+            self.forward_action_reward_count += 1 # original 1
+            action_reward = 2
         if self.last_action == "TURN_LEFT":
-            self.left_turn_action_reward_count += 0 # originial 1
+            self.left_turn_action_reward_count += 1 # originial 1
             action_reward = 1
         if self.last_action == "TURN_RIGHT":
-            self.right_turn_action_reward_count += 0 # original 1
+            self.right_turn_action_reward_count += 1 # original 1
             action_reward = 1
         if self.last_action == "STOP":
-            self.stop_action_reward_count += 0 # original 1
+            self.stop_action_reward_count += 1 # original 1
             action_reward = 1
 
         # Distance to goal reward
@@ -385,18 +401,18 @@ class Env:
                                                              boundary_radius=0.3, epsilon=0.2) #original is 0.3
             self.waypoint_desired_point.x = goal_waypoints[0]
             self.waypoint_desired_point.y = goal_waypoints[1]
-            waypoint_reward = 10 # original 200
-            print("Change desired point")
-            print(self.waypoint_desired_point)
+            waypoint_reward = 50 # original 200
+            # print("Change desired point")
+            # print(self.waypoint_desired_point)
 
             # Check if waypoint is within the goal point
             if self.is_in_true_desired_position(self.waypoint_desired_point):
                 self.waypoint_desired_point.x = self.original_desired_point.x
                 self.waypoint_desired_point.y = self.original_desired_point.y
-                print("Change desired point to actual goal point since it is near")
-                print(self.waypoint_desired_point)
+                # print("Change desired point to actual goal point since it is near")
+                # print(self.waypoint_desired_point)
 
-        non_terminating_reward = step_reward + dtg_reward + htg_reward + waypoint_reward  # + action_reward
+        non_terminating_reward = step_reward + dtg_reward + htg_reward + waypoint_reward + penalty_loop  + action_reward
         self.step_reward_count += 1
 
         if self.last_action is not None:
@@ -421,7 +437,7 @@ class Env:
                 rospy.loginfo("Reached goal position!!")
                 self.episode_failure = False
                 self.episode_success = True
-                goal_reward = 200
+                goal_reward = 400
                 reward = goal_reward + non_terminating_reward
             else:
                 rospy.loginfo("Collision!!")
@@ -537,6 +553,8 @@ class Env:
         self.strong_left_turn_action_reward_count = 0
         self.weak_right_turn_action_reward_count = 0
         self.weak_left_turn_action_reward_count = 0
+        self.left_turn_action_reward_count = 0
+        self.right_turn_action_reward_count = 0
         self.rotate_in_place_action_reward_count = 0
         self.social_safety_violation_count = 0
         self.ego_safety_violation_count = 0
