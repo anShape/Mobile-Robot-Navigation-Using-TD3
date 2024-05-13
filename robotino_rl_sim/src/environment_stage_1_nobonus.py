@@ -79,9 +79,11 @@ class Env:
         self.prev_pos.z = rospy.get_param("/robotino/starting_pose/z")
 
         self.original_desired_point = Point()
-        self.original_desired_point.x = rospy.get_param("/robotino/desired_pose/x")
-        self.original_desired_point.y = rospy.get_param("/robotino/desired_pose/y")
-        self.original_desired_point.z = rospy.get_param("/robotino/desired_pose/z")
+        # self.original_desired_point.x = rospy.get_param("/robotino/desired_pose/x")
+        # self.original_desired_point.y = rospy.get_param("/robotino/desired_pose/y")
+        # self.original_desired_point.z = rospy.get_param("/robotino/desired_pose/z")
+
+        self.goal_points = [[-1,-1],[-1,0],[-1,1]]
 
         self.waypoint_desired_point = Point()
         self.waypoint_desired_point.x = self.original_desired_point.x
@@ -304,11 +306,16 @@ class Env:
 
         goal_heading_distance = [heading_to_goal, distance_to_goal]
 
-        #Fungsi CNN
+        # Image processing
         cnn_result = utils.cnn(data_cam)
 
+        # For inserting goal point to the state
+        desired_point = [self.original_desired_point.x*10, self.original_desired_point.y*10]
+
         state = (scan_range + goal_heading_distance + agent_position + agent_orientation + agent_velocity
-                 + cnn_result + data_bumper)
+                 + cnn_result + data_bumper + desired_point)
+
+        # print("State: ", state)
 
         # Round items in state to 2 decimal places
         state = list(np.around(np.array(state), 3))
@@ -321,14 +328,14 @@ class Env:
 
         penalty_loop = 0
 
-        if (step_counter % 50) == 0:
+        if (step_counter % 100) == 0:
             travel_x = self.prev_pos.x - self.position.x
             travel_y = self.prev_pos.y - self.position.y
             self.prev_pos.x = self.position.x
             self.prev_pos.y = self.position.y
             if travel_x < 0.5 and travel_y < 0.5:
-                print("Robot is stuck in a loop")
-                penalty_loop = -200
+                # print("Robot is stuck in a loop")
+                penalty_loop = -300
 
         distance_difference = current_distance - self.previous_distance
         heading_difference = current_heading - self.previous_heading
@@ -341,7 +348,7 @@ class Env:
         # Action reward
         if self.last_action == "FORWARD":
             self.forward_action_reward_count += 1 # original 1
-            action_reward = 2
+            action_reward = 5
         if self.last_action == "TURN_LEFT":
             self.left_turn_action_reward_count += 1 # originial 1
             action_reward = 1
@@ -401,7 +408,7 @@ class Env:
                                                              boundary_radius=0.3, epsilon=0.2) #original is 0.3
             self.waypoint_desired_point.x = goal_waypoints[0]
             self.waypoint_desired_point.y = goal_waypoints[1]
-            waypoint_reward = 50 # original 200
+            waypoint_reward = 20 # original 200
             # print("Change desired point")
             # print(self.waypoint_desired_point)
 
@@ -412,7 +419,8 @@ class Env:
                 # print("Change desired point to actual goal point since it is near")
                 # print(self.waypoint_desired_point)
 
-        non_terminating_reward = step_reward + dtg_reward + htg_reward + waypoint_reward + penalty_loop  + action_reward
+        # non_terminating_reward = step_reward + dtg_reward + htg_reward + waypoint_reward + penalty_loop  + action_reward
+        non_terminating_reward = step_reward + dtg_reward + htg_reward + penalty_loop  + action_reward
         self.step_reward_count += 1
 
         if self.last_action is not None:
@@ -437,13 +445,13 @@ class Env:
                 rospy.loginfo("Reached goal position!!")
                 self.episode_failure = False
                 self.episode_success = True
-                goal_reward = 400
+                goal_reward = 500
                 reward = goal_reward + non_terminating_reward
             else:
                 rospy.loginfo("Collision!!")
                 self.episode_failure = True
                 self.episode_success = False
-                collision_reward = -200
+                collision_reward = -300
                 reward = collision_reward + non_terminating_reward
             self.pub_cmd_vel.publish(Twist())
 
@@ -534,6 +542,13 @@ class Env:
                 data_cam = bridge.imgmsg_to_cv2(data_cam, desired_encoding='passthrough')
             except:
                 pass
+
+        # Get random goal points
+        random_goal = np.random.randint(0,3)
+        self.original_desired_point.x = self.goal_points[random_goal][0]
+        self.original_desired_point.y = self.goal_points[random_goal][1]
+        self.original_desired_point.z = 0.0
+        # print("Random goal point: ", self.original_desired_point)
 
         # Get initial heading and distance to goal
         self.previous_distance = self.get_distance_to_goal(self.position)

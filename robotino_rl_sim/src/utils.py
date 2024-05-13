@@ -53,25 +53,11 @@ def remove_qfile_if_exist(outdir, file):
     except OSError:
         pass
 
-
-# def record_data(data, outdir, filename):
-#     file_exists = os.path.isfile(outdir + "/" + filename + ".csv")
-#     with open(outdir + "/" + filename + ".csv", "a") as fp:
-#         headers = ['episode_number', 'success_episode', 'failure_episode', 'episode_reward', 'episode_step',
-#                    'ego_safety_score', 'social_safety_score', 'timelapse']
-#         writer = csv.DictWriter(fp, delimiter=',', lineterminator='\n', fieldnames=headers)
-
-#         if not file_exists:
-#             writer.writeheader()  # file doesn't exist yet, write a header
-
-#         wr = csv.writer(fp, dialect='excel')
-#         wr.writerow(data)
-
 def record_data(data, outdir, filename):
     file_exists = os.path.isfile(outdir + "/" + filename + ".csv")
-    with open(outdir + "/" + filename + ".csv", "w") as fp:
-        headers = ['episode_number', 'success_episode', 'failure_episode', 'episode_reward', 'episode_step',
-                   'ego_safety_score', 'social_safety_score', 'timelapse']
+    with open(outdir + "/" + filename + ".csv", "a") as fp:
+        headers = ['episode_number', 'success_episode', 'episode_reward', 'episode_step',
+                   'ego_safety_score', 'timelapse']
         writer = csv.DictWriter(fp, delimiter=',', lineterminator='\n', fieldnames=headers)
 
         if not file_exists:
