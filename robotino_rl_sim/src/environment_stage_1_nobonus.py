@@ -39,6 +39,9 @@ from uuid import uuid4
 from itertools import chain
 import utils
 
+from gazebo_msgs.msg import ModelState 
+from gazebo_msgs.srv import SetModelState
+
 
 class Env:
     def __init__(self, action_dim=2, max_step=200):
@@ -163,6 +166,40 @@ class Env:
 
         # for testing
         self.inc = 1
+
+        # Obstacle rand pose change
+        state_msg_obs1 = ModelState()
+        state_msg_obs1.model_name = 'obstacle_1'
+        state_msg_obs1.pose.position.x, state_msg_obs1.pose.position.y = utils.get_rand_xy()
+        state_msg_obs1.pose.position.z = 0
+        state_msg_obs1.pose.orientation.x = 0
+        state_msg_obs1.pose.orientation.y = 0
+        state_msg_obs1.pose.orientation.z = 0
+        state_msg_obs1.pose.orientation.w = 0
+
+        self.state_msg_obs1 = state_msg_obs1
+
+        state_msg_obs2 = ModelState()
+        state_msg_obs2.model_name = 'obstacle_2'
+        state_msg_obs2.pose.position.x, state_msg_obs1.pose.position.y = utils.get_rand_xy()
+        state_msg_obs2.pose.position.z = 0
+        state_msg_obs2.pose.orientation.x = 0
+        state_msg_obs2.pose.orientation.y = 0
+        state_msg_obs2.pose.orientation.z = 0
+        state_msg_obs2.pose.orientation.w = 0
+        
+        self.state_msg_obs2 = state_msg_obs2
+
+        state_msg_obs3 = ModelState()
+        state_msg_obs3.model_name = 'obstacle_3'
+        state_msg_obs3.pose.position.x, state_msg_obs1.pose.position.y = utils.get_rand_xy()
+        state_msg_obs3.pose.position.z = 0
+        state_msg_obs3.pose.orientation.x = 0
+        state_msg_obs3.pose.orientation.y = 0
+        state_msg_obs3.pose.orientation.z = 0
+        state_msg_obs3.pose.orientation.w = 0
+
+        self.state_msg_obs3 = state_msg_obs3
 
     def shutdown(self):
         rospy.loginfo("Stopping TurtleBot")
@@ -348,7 +385,7 @@ class Env:
         # Action reward
         if self.last_action == "FORWARD":
             self.forward_action_reward_count += 1 # original 1
-            action_reward = 5
+            action_reward = 10
         if self.last_action == "TURN_LEFT":
             self.left_turn_action_reward_count += 1 # originial 1
             action_reward = 1
@@ -365,7 +402,7 @@ class Env:
             dtg_reward = 0
         if distance_difference < 0:
             self.dtg_reward_count += 1
-            dtg_reward = 1
+            dtg_reward = 3
 
         # Heading to goal reward
         if heading_difference > 0:
@@ -419,8 +456,8 @@ class Env:
                 # print("Change desired point to actual goal point since it is near")
                 # print(self.waypoint_desired_point)
 
-        # non_terminating_reward = step_reward + dtg_reward + htg_reward + waypoint_reward + penalty_loop  + action_reward
-        non_terminating_reward = step_reward + dtg_reward + htg_reward + penalty_loop  + action_reward
+        non_terminating_reward = step_reward + dtg_reward + htg_reward + waypoint_reward + penalty_loop  + action_reward
+        # non_terminating_reward = step_reward + dtg_reward + htg_reward + penalty_loop  + action_reward
         self.step_reward_count += 1
 
         if self.last_action is not None:
@@ -531,6 +568,19 @@ class Env:
             self.reset_proxy()
         except rospy.ServiceException as e:
             print("gazebo/reset_simulation service call failed")
+
+        self.state_msg_obs1.pose.position.x, self.state_msg_obs1.pose.position.y = utils.get_rand_xy()
+        self.state_msg_obs2.pose.position.x, self.state_msg_obs2.pose.position.y = utils.get_rand_xy()
+        self.state_msg_obs3.pose.position.x, self.state_msg_obs3.pose.position.y = utils.get_rand_xy()
+
+        rospy.wait_for_service('/gazebo/set_model_state')
+        try:
+            set_state = rospy.ServiceProxy('/gazebo/set_model_state', SetModelState)
+            resp1 = set_state( self.state_msg_obs1 )
+            resp2 = set_state( self.state_msg_obs2 )
+            resp3 = set_state( self.state_msg_obs3 )
+        except rospy.ServiceException as e:
+            print("Service call failed: %s"%e)
 
         data_laser = None
         while data_laser is None:

@@ -19,6 +19,7 @@ from shapely.geometry import LineString
 from shapely.geometry import Point
 from shapely.geometry.polygon import Polygon
 from visualization_msgs.msg import Marker
+import random
 
 
 def load_q(file):
@@ -626,3 +627,16 @@ def get_bumper_data():
     if min(bumper_data) < 0.24:
         collision[0] = 1
     return collision
+
+def get_rand_xy():
+    x = random.uniform(1, -1)
+    y = random.uniform(1, -1)
+
+    if x > 0.5 and y < -0.5:
+        x -= 0.7
+        y += 0.7
+    elif x < -0.5 and y > 0.5:
+        x += 0.7
+        y -= 0.7
+
+    return x, y
