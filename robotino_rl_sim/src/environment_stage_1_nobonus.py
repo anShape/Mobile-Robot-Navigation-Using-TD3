@@ -82,11 +82,11 @@ class Env:
         self.prev_pos.z = rospy.get_param("/robotino/starting_pose/z")
 
         self.original_desired_point = Point()
-        # self.original_desired_point.x = rospy.get_param("/robotino/desired_pose/x")
-        # self.original_desired_point.y = rospy.get_param("/robotino/desired_pose/y")
-        # self.original_desired_point.z = rospy.get_param("/robotino/desired_pose/z")
+        self.original_desired_point.x = rospy.get_param("/robotino/desired_pose/x")
+        self.original_desired_point.y = rospy.get_param("/robotino/desired_pose/y")
+        self.original_desired_point.z = rospy.get_param("/robotino/desired_pose/z")
 
-        self.goal_points = [[-1,-1],[-1,0],[-1,1]]
+        # self.goal_points = [[-1,-1],[-1,0],[-1,1]]
 
         self.waypoint_desired_point = Point()
         self.waypoint_desired_point.x = self.original_desired_point.x
@@ -569,6 +569,7 @@ class Env:
         except rospy.ServiceException as e:
             print("gazebo/reset_simulation service call failed")
 
+        # Randomize obstacle positions
         self.state_msg_obs1.pose.position.x, self.state_msg_obs1.pose.position.y = utils.get_rand_xy()
         self.state_msg_obs2.pose.position.x, self.state_msg_obs2.pose.position.y = utils.get_rand_xy()
         self.state_msg_obs3.pose.position.x, self.state_msg_obs3.pose.position.y = utils.get_rand_xy()
@@ -594,10 +595,10 @@ class Env:
                 pass
 
         # Get random goal points
-        random_goal = np.random.randint(0,3)
-        self.original_desired_point.x = self.goal_points[random_goal][0]
-        self.original_desired_point.y = self.goal_points[random_goal][1]
-        self.original_desired_point.z = 0.0
+        # random_goal = np.random.randint(0,3)
+        # self.original_desired_point.x = self.goal_points[random_goal][0]
+        # self.original_desired_point.y = self.goal_points[random_goal][1]
+        # self.original_desired_point.z = 0.0
         # print("Random goal point: ", self.original_desired_point)
 
         # Get initial heading and distance to goal

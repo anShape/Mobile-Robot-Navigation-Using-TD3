@@ -443,7 +443,7 @@
             </link>
             <static>1</static>
         </model>
-        <model name='goal_region_1'>
+        <!-- <model name='goal_region_1'>
             <link name='link_0'>
                 <inertial>
                     <mass>1</mass>
@@ -490,7 +490,7 @@
             <static>0</static>
             <allow_auto_disable>1</allow_auto_disable>
             <pose frame=''>-1 -1 0 0 -0 0</pose>
-        </model>
+        </model> -->
         <!-- <model name='goal_region_2'>
             <link name='link_0'>
                 <inertial>
@@ -538,7 +538,7 @@
             <static>0</static>
             <allow_auto_disable>1</allow_auto_disable>
             <pose frame=''>-1 0 0 0 -0 0</pose>
-        </model>
+        </model> -->
         <model name='goal_region_3'>
             <link name='link_0'>
                 <inertial>
@@ -586,6 +586,6 @@
             <static>0</static>
             <allow_auto_disable>1</allow_auto_disable>
             <pose frame=''>-1 1 0 0 -0 0</pose>
-        </model> -->
+        </model>
     </world>
 </sdf>
