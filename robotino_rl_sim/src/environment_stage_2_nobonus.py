@@ -150,6 +150,7 @@ class Env:
         self.rotate_in_place_action_reward_count = 0
         self.stop_action_reward_count = 0
         self.social_nav_reward_count = 0
+        self.ego_penalty_count = 0
         self.last_action = "FORWARD"
 
         self.total_x_travelled = 0
@@ -201,6 +202,10 @@ class Env:
 
         self.state_msg_obs3 = state_msg_obs3
 
+        
+        self.collision_count = 0
+        self.collision_penalty = 0
+
     def shutdown(self):
         rospy.loginfo("Stopping TurtleBot")
         self.pub_cmd_vel.publish(Twist())
@@ -233,18 +238,12 @@ class Env:
     def get_distance_to_goal(self, current_position):
         distance = self.get_distance_from_point(current_position,
                                                 self.waypoint_desired_point)
-        
-        # print("Current position to waypoint distance: " + str(distance))
-        # print("Waypoint: [" + str(self.waypoint_desired_point.x) + ", " + str(self.waypoint_desired_point.y) + "]")
 
         return distance
 
     def get_actual_distance_to_goal(self, current_position):
         distance = self.get_distance_from_point(current_position,
                                                 self.original_desired_point)
-        
-        # print("Current position to goal distance: " + str(distance))
-        # print("Goal: " + str(self.original_desired_point))
 
         return distance
 
@@ -324,7 +323,7 @@ class Env:
         self.robot_yaw = yaw
 
         if not self.done:
-            if data_bumper[0] == 1:
+            if data_bumper[0]:
                 print("DONE: MINIMUM RANGE")
                 # print("MINIMUM: ", str(min(current_scans)))
                 self.done = True
@@ -352,8 +351,6 @@ class Env:
         state = (scan_range + goal_heading_distance + agent_position + agent_orientation + agent_velocity
                  + cnn_result + data_bumper + desired_point)
 
-        # print("State: ", state)
-
         # Round items in state to 2 decimal places
         state = list(np.around(np.array(state), 3))
 
@@ -365,16 +362,6 @@ class Env:
 
         penalty_loop = 0
 
-        # if (step_counter % 75) == 0:
-        #     travel_x = self.prev_pos.x - self.position.x
-        #     travel_y = self.prev_pos.y - self.position.y
-        #     self.prev_pos.x = self.position.x
-        #     self.prev_pos.y = self.position.y
-        #     if travel_x < 0.5 and travel_y < 0.5:
-        #         # print("Robot is stuck in a loop")
-        #         rospy.loginfo("Robot is stuck in a loop!")
-        #         penalty_loop = -300
-
         distance_difference = current_distance - self.previous_distance
         heading_difference = current_heading - self.previous_heading
 
@@ -382,20 +369,6 @@ class Env:
         htg_reward = 0
         dtg_reward = 0
         waypoint_reward = 0
-
-        # Action reward
-        # if self.last_action == "FORWARD":
-        #     self.forward_action_reward_count += 1 # original 1
-        #     action_reward = 10
-        # if self.last_action == "TURN_LEFT":
-        #     self.left_turn_action_reward_count += 1 # originial 1
-        #     action_reward = 1
-        # if self.last_action == "TURN_RIGHT":
-        #     self.right_turn_action_reward_count += 1 # original 1
-        #     action_reward = 1
-        # if self.last_action == "STOP":
-        #     self.stop_action_reward_count += 1 # original 1
-        #     action_reward = 1
 
         # Distance to goal reward
         if distance_difference > 0:
@@ -405,61 +378,23 @@ class Env:
             self.dtg_reward_count += 1
             dtg_reward = 1
 
-        # Heading to goal reward
-        # if heading_difference > 0:
-        #     if current_heading > 0 and self.previous_heading < 0:
-        #         self.htg_reward_count += 1
-        #         htg_reward = 1
-        #     if current_heading < 0 and self.previous_heading < 0:
-        #         self.htg_reward_count += 1
-        #         htg_reward = 1
-        #     if current_heading < 0 and self.previous_heading > 0:
-        #         self.htg_reward_count += 1
-        #         htg_reward = 1
-        #     if current_heading > 0 and self.previous_heading > 0:
-        #         self.htg_penalty_count += 1
-        #         htg_reward = 0
-        # if heading_difference < 0:
-        #     if current_heading < 0 and self.previous_heading > 0:
-        #         self.htg_reward_count += 1
-        #         htg_reward = 1
-        #     if current_heading > 0 and self.previous_heading > 0:
-        #         self.htg_reward_count += 1
-        #         htg_reward = 1
-        #     if current_heading > 0 and self.previous_heading < 0:
-        #         self.htg_reward_count += 1
-        #         htg_reward = 1
-        #     if current_heading < 0 and self.previous_heading < 0:
-        #         self.htg_penalty_count += 1
-        #         htg_reward = 0
+        # Ego penalty
+        scan_ranges_temp = []
+        for i in range(9):
+            scan_ranges_temp.append(state[i])
+        
+        ego_penalty = 0
+        if min(scan_ranges_temp) < 0.4:
+            self.ego_penalty_count += 1
+            ego_penalty = -1
 
-        # Waypoint reward
-        if self.is_in_desired_position(self.position):
-            rospy.loginfo("Reached waypoint position!!")
+        # Collision penalty
+        collision_penalty = 0
+        if state[577]:
+            self.collision_count += 1
+            collision_penalty = -100
 
-            # print("Robot position: " + str(self.position))
-            # print("Desaired waypoint " + str(self.waypoint_desired_point))
-
-            goal_waypoints = utils.get_local_goal_waypoints([self.position.x, self.position.y],
-                                                            [self.original_desired_point.x,
-                                                             self.original_desired_point.y], 
-                                                             boundary_radius=0.3, epsilon=0.2) #original is 0.3
-            self.waypoint_desired_point.x = goal_waypoints[0]
-            self.waypoint_desired_point.y = goal_waypoints[1]
-            waypoint_reward = 30 # original 200
-            # print("Change desired point")
-            # print(self.waypoint_desired_point)
-
-            # Check if waypoint is within the goal point
-            if self.is_in_true_desired_position(self.waypoint_desired_point):
-                self.waypoint_desired_point.x = self.original_desired_point.x
-                self.waypoint_desired_point.y = self.original_desired_point.y
-                # print("Change desired point to actual goal point since it is near")
-                # print(self.waypoint_desired_point)
-
-        non_terminating_reward = step_reward + dtg_reward
-        # non_terminating_reward = step_reward + dtg_reward + htg_reward + waypoint_reward + penalty_loop  + action_reward
-        # non_terminating_reward = step_reward + dtg_reward + htg_reward + penalty_loop  + action_reward
+        non_terminating_reward = step_reward + dtg_reward + ego_penalty
         self.step_reward_count += 1
 
         if self.last_action is not None:
@@ -479,6 +414,7 @@ class Env:
             print("right action reward count: ", str(self.right_turn_action_reward_count))
             print("stop action reward count: ", str(self.stop_action_reward_count))
             print("social nav reward count: ", str(self.social_nav_reward_count))
+            print("ego penalty count: ", str(self.ego_penalty_count))
             print("----------------------------")
             if self.is_in_true_desired_position(self.position):
                 rospy.loginfo("Reached goal position!!")
@@ -575,6 +511,9 @@ class Env:
         self.state_msg_obs1.pose.position.x, self.state_msg_obs1.pose.position.y = utils.get_rand_xy()
         self.state_msg_obs2.pose.position.x, self.state_msg_obs2.pose.position.y = utils.get_rand_xy()
         self.state_msg_obs3.pose.position.x, self.state_msg_obs3.pose.position.y = utils.get_rand_xy()
+
+        # Reset variabel
+        self.ego_penalty_count = 0
 
         rospy.wait_for_service('/gazebo/set_model_state')
         try:
