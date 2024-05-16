@@ -141,6 +141,7 @@
                     </material>
                 </visual>
             </link>
+            <static>1</static>
         </model>
         <model name="obstacle_2">
             <pose>0.25 -0.535336 0.18 0 -0 0</pose>
@@ -199,6 +200,7 @@
                     </material>
                 </visual>
             </link>
+            <static>1</static>
         </model>
         <model name="obstacle_3">
             <pose>0.457784 -0.119653 0.18 0 -0 0.5</pose>
@@ -257,6 +259,7 @@
                     </material>
                 </visual>
             </link>
+            <static>1</static>
         </model>
 
         <model name='square_room'>

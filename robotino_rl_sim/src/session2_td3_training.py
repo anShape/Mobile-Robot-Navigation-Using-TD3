@@ -38,7 +38,7 @@ if __name__ == '__main__':
     # Remove log file if exist
     # utils.remove_logfile_if_exist(result_outdir, "td3_training")
 
-    resume_epoch = 1000
+    resume_epoch = 1100
     continue_execution = True
     learning = True
     actor_resume_path = actor_model_param_path + str(resume_epoch)
@@ -107,7 +107,6 @@ if __name__ == '__main__':
     time_lapse = 0
     for ep in range(resume_epoch, nepisodes):
         rospy.logwarn("EPISODE: " + str(ep + 1))
-        print("EPISODE: ", ep + 1)
         cumulated_reward = 0
         social_safety_score = 0
         ego_safety_score = 0

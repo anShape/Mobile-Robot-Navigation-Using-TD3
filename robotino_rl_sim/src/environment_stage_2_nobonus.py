@@ -386,7 +386,7 @@ class Env:
         ego_penalty = 0
         if min(scan_ranges_temp) < 0.4:
             self.ego_penalty_count += 1
-            ego_penalty = -1
+            ego_penalty = -2
 
         # Collision penalty
         collision_penalty = 0
@@ -415,6 +415,7 @@ class Env:
             print("stop action reward count: ", str(self.stop_action_reward_count))
             print("social nav reward count: ", str(self.social_nav_reward_count))
             print("ego penalty count: ", str(self.ego_penalty_count))
+            print("collision count: ", str(self.collision_count))
             print("----------------------------")
             if self.is_in_true_desired_position(self.position):
                 rospy.loginfo("Reached goal position!!")

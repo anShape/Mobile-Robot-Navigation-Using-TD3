@@ -10,8 +10,8 @@ import numpy as np
 import rospkg
 import utils
 import time
-from environment_stage_1_nobonus import Env  # <-- used in latest work
-
+# from environment_stage_1_nobonus import Env  # <-- used in latest work
+from environment_stage_2_nobonus import Env
 # from environment_stage_1_original import Env  # For thesis
 
 # Importing the library
