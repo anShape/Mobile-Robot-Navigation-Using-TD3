@@ -21,6 +21,8 @@ from shapely.geometry.polygon import Polygon
 from visualization_msgs.msg import Marker
 import random
 
+import requests
+
 
 def load_q(file):
     """
@@ -640,3 +642,14 @@ def get_rand_xy():
         y -= 0.7
 
     return x, y
+
+def get_odom():
+    odom = requests.get('http://192.168.0.1/cam0')
+    x = odom.x
+    y = odom.y
+    rot = odom.rot
+    vx = odom.vx
+    vy = odom.vy
+    omega = odom.omega
+    sec = odom.sec
+    return x, y, rot, vx, vy, omega, sec
