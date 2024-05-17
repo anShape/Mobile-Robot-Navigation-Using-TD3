@@ -622,13 +622,9 @@ def cnn(image):
     return conv_layer
 
 def get_bumper_data():
-    collision = [0]
-    bumper_data = rospy.wait_for_message('/bumper_scan', LaserScan)
-    bumper_data = get_scan_ranges(bumper_data, 49, 0.27)
-    bumper_data = np.array(bumper_data)
-    if min(bumper_data) < 0.24:
-        collision[0] = 1
-    return collision
+    bumper = requests.get('http://192.168.0.1/data/bumper')
+
+    return bumper
 
 def get_rand_xy():
     x = random.uniform(1, -1)
@@ -652,4 +648,26 @@ def get_odom():
     vy = odom.vy
     omega = odom.omega
     sec = odom.sec
+
     return x, y, rot, vx, vy, omega, sec
+
+def get_laser():
+    laser = requests.get('http://192.168.0.1/data/distancesensorarray')
+
+    return laser
+
+def get_cam():
+    cam = requests.get('http://192.168.0.1/sensorimage')
+
+    return cam
+
+def post_omnidrive(vl, vw):
+    vx = vl*0.5
+    vy = vl*0.5
+    om = vw
+    data = {
+        'vx': vx,
+        'vy': vy,
+        'om': om
+    }
+    requests.post('http://192.168.0.1/data/omnidrive', data=data)

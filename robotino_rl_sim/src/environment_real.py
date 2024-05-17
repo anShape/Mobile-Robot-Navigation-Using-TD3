@@ -159,13 +159,13 @@ class Env:
         self.total_y_travelled = 0
 
         # RVIZ visualization markers to see Collision Probabilities of obstacles w.r.t robot's motion
-        self.pub_obs1_pose_text = rospy.Publisher('/obstacle_text_poses/1', Marker, queue_size=1)
-        self.pub_obs2_pose_text = rospy.Publisher('/obstacle_text_poses/2', Marker, queue_size=1)
-        self.pub_obs3_pose_text = rospy.Publisher('/obstacle_text_poses/3', Marker, queue_size=1)
+        # self.pub_obs1_pose_text = rospy.Publisher('/obstacle_text_poses/1', Marker, queue_size=1)
+        # self.pub_obs2_pose_text = rospy.Publisher('/obstacle_text_poses/2', Marker, queue_size=1)
+        # self.pub_obs3_pose_text = rospy.Publisher('/obstacle_text_poses/3', Marker, queue_size=1)
 
-        self.pub_obs1_pose_shape = rospy.Publisher('/obstacle_text_shape/1', Marker, queue_size=1)
-        self.pub_obs2_pose_shape = rospy.Publisher('/obstacle_text_shape/2', Marker, queue_size=1)
-        self.pub_obs3_pose_shape = rospy.Publisher('/obstacle_text_shape/3', Marker, queue_size=1)
+        # self.pub_obs1_pose_shape = rospy.Publisher('/obstacle_text_shape/1', Marker, queue_size=1)
+        # self.pub_obs2_pose_shape = rospy.Publisher('/obstacle_text_shape/2', Marker, queue_size=1)
+        # self.pub_obs3_pose_shape = rospy.Publisher('/obstacle_text_shape/3', Marker, queue_size=1)
 
         # for testing
         self.inc = 1
@@ -469,9 +469,14 @@ class Env:
         if self.vel_t0 == -1:  # Reset when deque is full
             self.vel_t0 = time.time()  # Start timer to get the timelapse between two positions of agent
 
+        # Ganti jadi vx vy omega dan publish ke rest api
+        utils.post_omnidrive(vel_cmd.linear.x, vel_cmd.angular.z)
+
+        # harusnya ini dihapus sih
         # Execute the actions to move the robot for 1 timestep
         start_timestep = time.time()
         self.pub_cmd_vel.publish(vel_cmd)
+        
         time.sleep(0.15)
         end_timestep = time.time() - start_timestep
         if end_timestep < 0.05:
@@ -489,9 +494,9 @@ class Env:
         data_cam = None
         while data_laser is None or data_bumper is None or data_cam is None:
             try:
-                data_laser = rospy.wait_for_message('scan', LaserScan, timeout=5)
+                data_laser = utils.get_laser()
                 data_bumper = utils.get_bumper_data()
-                data_cam = rospy.wait_for_message('camera/depth/image_raw', Image, timeout=5)
+                data_cam = utils.get_cam()
                 bridge = CvBridge()
                 data_cam = bridge.imgmsg_to_cv2(data_cam, desired_encoding='passthrough')
             except:
@@ -503,36 +508,36 @@ class Env:
         return np.asarray(state), reward, done
 
     def reset(self):
-        rospy.wait_for_service('gazebo/reset_simulation')
-        try:
-            print("RESET PROXY")
-            self.reset_proxy()
-        except rospy.ServiceException as e:
-            print("gazebo/reset_simulation service call failed")
+        # rospy.wait_for_service('gazebo/reset_simulation')
+        # try:
+        #     print("RESET PROXY")
+        #     self.reset_proxy()
+        # except rospy.ServiceException as e:
+        #     print("gazebo/reset_simulation service call failed")
 
         # Randomize obstacle positions
-        self.state_msg_obs1.pose.position.x, self.state_msg_obs1.pose.position.y = utils.get_rand_xy()
-        self.state_msg_obs2.pose.position.x, self.state_msg_obs2.pose.position.y = utils.get_rand_xy()
-        self.state_msg_obs3.pose.position.x, self.state_msg_obs3.pose.position.y = utils.get_rand_xy()
+        # self.state_msg_obs1.pose.position.x, self.state_msg_obs1.pose.position.y = utils.get_rand_xy()
+        # self.state_msg_obs2.pose.position.x, self.state_msg_obs2.pose.position.y = utils.get_rand_xy()
+        # self.state_msg_obs3.pose.position.x, self.state_msg_obs3.pose.position.y = utils.get_rand_xy()
 
         # Reset variabel
         self.ego_penalty_count = 0
 
-        rospy.wait_for_service('/gazebo/set_model_state')
-        try:
-            set_state = rospy.ServiceProxy('/gazebo/set_model_state', SetModelState)
-            resp1 = set_state( self.state_msg_obs1 )
-            resp2 = set_state( self.state_msg_obs2 )
-            resp3 = set_state( self.state_msg_obs3 )
-        except rospy.ServiceException as e:
-            print("Service call failed: %s"%e)
+        # rospy.wait_for_service('/gazebo/set_model_state')
+        # try:
+        #     set_state = rospy.ServiceProxy('/gazebo/set_model_state', SetModelState)
+        #     resp1 = set_state( self.state_msg_obs1 )
+        #     resp2 = set_state( self.state_msg_obs2 )
+        #     resp3 = set_state( self.state_msg_obs3 )
+        # except rospy.ServiceException as e:
+        #     print("Service call failed: %s"%e)
 
         data_laser = None
         while data_laser is None:
             try:
-                data_laser = rospy.wait_for_message('scan', LaserScan, timeout=5)
+                data_laser = utils.get_laser()
                 data_bumper = utils.get_bumper_data()
-                data_cam = rospy.wait_for_message('camera/depth/image_raw', Image, timeout=5)
+                data_cam = utils.get_cam()
                 bridge = CvBridge()
                 data_cam = bridge.imgmsg_to_cv2(data_cam, desired_encoding='passthrough')
             except:
@@ -569,6 +574,7 @@ class Env:
         self.social_safety_violation_count = 0
         self.ego_safety_violation_count = 0
         self.obstacle_present_step_counts = 0
+
         return np.asarray(state)
 
     def get_episode_status(self):
