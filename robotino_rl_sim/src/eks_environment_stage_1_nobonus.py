@@ -86,7 +86,11 @@ class Env:
         self.original_desired_point.y = rospy.get_param("/robotino/desired_pose/y")
         self.original_desired_point.z = rospy.get_param("/robotino/desired_pose/z")
 
-        # self.goal_points = [[-1,-1],[-1,0],[-1,1]]
+        self.obstacle_pose = [[[0,0],[-0.3,0],[0,0.3]],[[-0.5,-0.5],[0.2,0.5],[0.1,-0.3]],[[-0.5,0],[-1,0],[0,0]],
+                              [[1,0],[0.5,0],[0,0]],[[0,0.3],[0,-0.5],[0,0]],[[0,0],[0,0.5],[0,1]],
+                              [[0,-0.5],[0.5,0],[-0.5,0]],[[-0.5,-5],[-1,-1],[1,1]],[[-0.1,-0.1],[-0.1,0.1],[0.1,0.1]],
+                              [[0.3,-0.7],[-0.4,0],[-0.2,-0.7]]]
+        self.obstacle_pose_count = 0
 
         self.waypoint_desired_point = Point()
         self.waypoint_desired_point.x = self.original_desired_point.x
@@ -571,10 +575,13 @@ class Env:
         except rospy.ServiceException as e:
             print("gazebo/reset_simulation service call failed")
 
-        # Randomize obstacle positions
-        self.state_msg_obs1.pose.position.x, self.state_msg_obs1.pose.position.y = utils.get_rand_xy()
-        self.state_msg_obs2.pose.position.x, self.state_msg_obs2.pose.position.y = utils.get_rand_xy()
-        self.state_msg_obs3.pose.position.x, self.state_msg_obs3.pose.position.y = utils.get_rand_xy()
+        # Change obstacle positions
+        self.state_msg_obs1.pose.position.x, self.state_msg_obs1.pose.position.y = self.obstacle_pose[self.obstacle_pose_count][0][0], self.obstacle_pose[self.obstacle_pose_count][0][1]
+        self.state_msg_obs2.pose.position.x, self.state_msg_obs2.pose.position.y = self.obstacle_pose[self.obstacle_pose_count][1][0], self.obstacle_pose[self.obstacle_pose_count][1][1]
+        self.state_msg_obs3.pose.position.x, self.state_msg_obs3.pose.position.y = self.obstacle_pose[self.obstacle_pose_count][2][0], self.obstacle_pose[self.obstacle_pose_count][2][1]
+        self.obstacle_pose_count += 1
+        if self.obstacle_pose_count == 9:
+            self.obstacle_pose_count = 0
 
         rospy.wait_for_service('/gazebo/set_model_state')
         try:
@@ -585,22 +592,16 @@ class Env:
         except rospy.ServiceException as e:
             print("Service call failed: %s"%e)
 
-        # data_laser = None
-        # while data_laser is None:
-        #     try:
-        #         data_laser = rospy.wait_for_message('scan', LaserScan, timeout=5)
-        #         data_bumper = utils.get_bumper_data()
-        #         data_cam = rospy.wait_for_message('camera/depth/image_raw', Image, timeout=5)
-        #         bridge = CvBridge()
-        #         data_cam = bridge.imgmsg_to_cv2(data_cam, desired_encoding='passthrough')
-        #     except:
-        #         pass
-
-        data_laser = rospy.wait_for_message('scan', LaserScan, timeout=5)
-        data_bumper = utils.get_bumper_data()
-        data_cam = rospy.wait_for_message('camera/depth/image_raw', Image, timeout=5)
-        bridge = CvBridge()
-        data_cam = bridge.imgmsg_to_cv2(data_cam, desired_encoding='passthrough')
+        data_laser = None
+        while data_laser is None:
+            try:
+                data_laser = rospy.wait_for_message('scan', LaserScan, timeout=5)
+                data_bumper = utils.get_bumper_data()
+                data_cam = rospy.wait_for_message('camera/depth/image_raw', Image, timeout=5)
+                bridge = CvBridge()
+                data_cam = bridge.imgmsg_to_cv2(data_cam, desired_encoding='passthrough')
+            except:
+                pass
 
         # Get random goal points
         # random_goal = np.random.randint(0,3)

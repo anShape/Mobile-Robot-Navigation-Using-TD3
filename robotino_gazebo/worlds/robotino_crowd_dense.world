@@ -86,7 +86,7 @@
         </spherical_coordinates>
         <model name="obstacle_1">
             <pose>-0.56 0.596067 0.18 0 -0 1.57</pose>
-            <static>0</static>
+            <static>1</static>
             <self_collide>0</self_collide>
             <enable_wind>0</enable_wind>
             <link name="box">
@@ -145,7 +145,7 @@
         </model>
         <model name="obstacle_2">
             <pose>0.25 -0.535336 0.18 0 -0 0</pose>
-            <static>0</static>
+            <static>1</static>
             <self_collide>0</self_collide>
             <enable_wind>0</enable_wind>
             <link name="box">
@@ -204,7 +204,7 @@
         </model>
         <model name="obstacle_3">
             <pose>0.457784 -0.119653 0.18 0 -0 0.5</pose>
-            <static>0</static>
+            <static>1</static>
             <self_collide>0</self_collide>
             <enable_wind>0</enable_wind>
             <link name="box">

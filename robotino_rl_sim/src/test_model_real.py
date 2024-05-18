@@ -40,7 +40,7 @@ if __name__ == '__main__':
 
     resume_epoch = 1500
     continue_execution = False
-    learning = True
+    learning = False
     actor_resume_path = actor_model_param_path + str(resume_epoch)
     critic1_resume_path = critic1_model_param_path + str(resume_epoch)
     critic2_resume_path = critic2_model_param_path + str(resume_epoch)
@@ -140,7 +140,6 @@ if __name__ == '__main__':
 
         if done:
             time_lapse = time.time() - start_time
-            social_safety_score = env.get_social_safety_violation_status(step + 1)
             ego_safety_score = env.get_ego_safety_violation_status(step + 1)
             # Debugging purposes
             if (step + 1) <= 2:

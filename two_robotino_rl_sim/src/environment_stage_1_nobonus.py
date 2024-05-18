@@ -349,8 +349,18 @@ class Env:
         # For inserting goal point to the state
         desired_point = [self.original_desired_point.x*10, self.original_desired_point.y*10]
 
+        # 9 + 2 + 2 + 1 + 2 + x + 1 + 2
         state = (scan_range + goal_heading_distance + agent_position + agent_orientation + agent_velocity
                  + cnn_result + data_bumper + desired_point)
+        
+        # print("scan range: ", scan_range)
+        # print("goal heading distance: ", goal_heading_distance)
+        # print("agent position: ", agent_position)
+        # print("agent orientation: ", agent_orientation)
+        # print("agent velocity: ", agent_velocity)
+        # print("cnn result: ", cnn_result)
+        # print("data bumper: ", data_bumper)
+        # print("desired point: ", desired_point)
 
         # print("State: ", state)
 

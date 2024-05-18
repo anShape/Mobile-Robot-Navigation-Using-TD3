@@ -61,8 +61,8 @@ if __name__ == '__main__':
         softupdate_coefficient = rospy.get_param("/robotino/tau")
         batch_size = 128
         memory_size = 1000000
-        network_inputs = 579  # 370 #74 #38 #54  # State dimension
-        hidden_layers = 256  # Hidden dimension
+        network_inputs = 919  # 900 cnn + 19 other
+        hidden_layers = 512  # Hidden dimension
         network_outputs = 2  # Action dimension
         action_v_max = 0.22  # 0.22  # m/s
         action_w_max = 2.0  # 2.0  # rad/s
@@ -116,7 +116,7 @@ if __name__ == '__main__':
         start_time = time.time()
         env.done = False
         state = observation
-        print("TES")
+        # print("TES")
         for step in range(nsteps):
             rospy.logwarn("EPISODE: " + str(ep + 1) + " | STEP: " + str(step + 1))
             step_counter += 1
