@@ -435,7 +435,7 @@ class Env:
 
         # Waypoint reward
         if self.is_in_desired_position(self.position):
-            rospy.loginfo("Reached waypoint position!!")
+            # rospy.loginfo("Reached waypoint position!!")
 
             # print("Robot position: " + str(self.position))
             # print("Desaired waypoint " + str(self.waypoint_desired_point))

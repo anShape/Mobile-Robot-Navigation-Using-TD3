@@ -9,12 +9,9 @@ import time
 def main():
     rospy.init_node('set_pose')
 
-    obs_pose = []
-
-
     state_msg_obs1 = ModelState()
     state_msg_obs1.model_name = 'obstacle_1'
-    state_msg_obs1.pose.position.z = 0
+    state_msg_obs1.pose.position.z = 0.18
     state_msg_obs1.pose.orientation.x = 0
     state_msg_obs1.pose.orientation.y = 0
     state_msg_obs1.pose.orientation.z = 0
@@ -22,7 +19,7 @@ def main():
 
     state_msg_obs2 = ModelState()
     state_msg_obs2.model_name = 'obstacle_2'
-    state_msg_obs2.pose.position.z = 0
+    state_msg_obs2.pose.position.z = 0.18
     state_msg_obs2.pose.orientation.x = 0
     state_msg_obs2.pose.orientation.y = 0
     state_msg_obs2.pose.orientation.z = 0
@@ -30,7 +27,7 @@ def main():
 
     state_msg_obs3 = ModelState()
     state_msg_obs3.model_name = 'obstacle_3'
-    state_msg_obs3.pose.position.z = 0
+    state_msg_obs3.pose.position.z = 0.18
     state_msg_obs3.pose.orientation.x = 0
     state_msg_obs3.pose.orientation.y = 0
     state_msg_obs3.pose.orientation.z = 0
@@ -44,6 +41,7 @@ def main():
             resp1 = set_state( state_msg_obs1 )
             resp2 = set_state( state_msg_obs2 )
             resp3 = set_state( state_msg_obs3 )
+            print("Obstacle pose set")
         except rospy.ServiceException as e:
             print("Service call failed: %s"%e)
 

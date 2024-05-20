@@ -675,3 +675,18 @@ def post_omnidrive(vl, vw):
         'om': om
     }
     requests.post('http://192.168.0.1/data/omnidrive', data=data)
+
+def is_robot_near_obstacle(robot_position, obstacle_position, threshold, memory):
+
+    reward = 0
+
+    for i in range(3):
+        temp = math.sqrt((obstacle_position[i][0] - robot_position.x) ** 2 + (obstacle_position[i][1] - robot_position.y) ** 2)
+        # print(temp)
+        if temp <= threshold:
+            memory[0][i] = True
+        if memory[0][i] and temp > threshold+0.3 and memory[1][i] == False:
+            memory[1][i] = True
+            reward += 50
+
+    return reward, memory

@@ -11,7 +11,7 @@ import rospkg
 import utils
 import time
 # from environment_stage_1_nobonus import Env  # <-- used in latest work
-from environment_stage_1_nobonus import Env
+from eks_environment_stage_1_nobonus import Env
 # from environment_stage_1_original import Env  # For thesis
 
 # Importing the library
@@ -28,7 +28,7 @@ if __name__ == '__main__':
 
     # Set the logging system
     rospack = rospkg.RosPack()
-    pkg_path = rospack.get_path('robotino_rl_sim')
+    pkg_path = rospack.get_path('two_robotino_rl_sim')
     result_outdir = pkg_path + '/src/results/td3' + '/' + stage_name
     model_outdir = pkg_path + '/src/models/td3' + '/' + stage_name
     actor_model_param_path = model_outdir + '/td3_actor_model_ep'
@@ -38,8 +38,8 @@ if __name__ == '__main__':
     # Remove log file if exist
     # utils.remove_logfile_if_exist(result_outdir, "td3_training")
 
-    resume_epoch = 1500
-    continue_execution = False
+    resume_epoch = 1400
+    continue_execution = True
     learning = True
     actor_resume_path = actor_model_param_path + str(resume_epoch)
     critic1_resume_path = critic1_model_param_path + str(resume_epoch)
@@ -85,8 +85,8 @@ if __name__ == '__main__':
         softupdate_coefficient = rospy.get_param("/robotino/tau")
         batch_size = 128
         memory_size = 1000000
-        network_inputs = 370 + (4 * k_obstacle_count - 4)  # State dimension
-        hidden_layers = 256  # Hidden dimension
+        network_inputs = 919 
+        hidden_layers = 512  # Hidden dimension
         network_outputs = 2  # Action dimension
         action_v_max = 0.22  # m/s
         action_w_max = 2.0  # rad/s
@@ -121,10 +121,14 @@ if __name__ == '__main__':
             rospy.logwarn("EPISODE: " + str(ep + 1) + " | STEP: " + str(step + 1))
             step_counter += 1
             state = np.float32(state)
+            # print("tes")
             action = td3_trainer.act(state, step, add_noise=True)
             _action = action.flatten().tolist()
+            # print("tes0")
             observation, reward, done = env.step(_action, step + 1, mode="continuous")
+            # print("tes1")
             success_episode, failure_episode = env.get_episode_status()
+            # print("tes2")
             cumulated_reward += reward
 
             next_state = observation
@@ -135,7 +139,7 @@ if __name__ == '__main__':
                 td3_trainer.memory.add(state, action, reward, next_state, done)
                 if len(td3_trainer.memory) > batch_size:
                     td3_trainer.learn(step)
-
+            # print("tes3")
             if not done:
                 # rospy.logwarn("NOT DONE")
                 state = next_state
@@ -165,5 +169,5 @@ if __name__ == '__main__':
                 print("EPISODE SUCCESS: ", success_episode)
                 print("EPISODE FAILURE: ", failure_episode)
                 break
-
+            # print("tes4")
     env.reset()

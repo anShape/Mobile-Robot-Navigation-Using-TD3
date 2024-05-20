@@ -110,13 +110,11 @@ if __name__ == '__main__':
         ego_safety_score = 0
 
         # Initialize the environment and get first state of the robot
-        # print("TUS")
         observation = env.reset()
         time.sleep(0.1)  # Give time for RL to reset the agent's position
         start_time = time.time()
         env.done = False
         state = observation
-        print("TES")
         for step in range(nsteps):
             rospy.logwarn("EPISODE: " + str(ep + 1) + " | STEP: " + str(step + 1))
             step_counter += 1

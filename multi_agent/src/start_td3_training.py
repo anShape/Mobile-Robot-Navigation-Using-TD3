@@ -122,7 +122,7 @@ if __name__ == '__main__':
             _action = action.flatten().tolist()
             next_state, done = env.step(_action, step + 1, mode="continuous")
             reward, done = env.compute_reward(next_state, step, done)
-            success_episode, failure_episode = env.get_episode_status()
+            success_episode = env.get_episode_status()
             cumulated_reward += reward
 
             next_state = np.float32(next_state)
@@ -152,15 +152,14 @@ if __name__ == '__main__':
                     td3_trainer.save_critic2_model(model_outdir, "td3_critic2_model_ep" + str(ep + 1) + '.pt')
                 rospy.logwarn("DONE")
                 if learning:
-                    data = [ep + 1, success_episode, failure_episode, cumulated_reward, step + 1]
+                    data = [ep + 1, success_episode, cumulated_reward, step + 1]
                 else:
-                    data = [ep + 1, success_episode, failure_episode, cumulated_reward, step + 1, ego_safety_score,
+                    data = [ep + 1, success_episode, cumulated_reward, step + 1, ego_safety_score,
                             social_safety_score, time_lapse]
                 utils.record_data(data, result_outdir, "td3_training_trajectory_test")
                 print("EPISODE REWARD: ", cumulated_reward)
                 print("EPISODE STEP: ", step + 1)
                 print("EPISODE SUCCESS: ", success_episode)
-                print("EPISODE FAILURE: ", failure_episode)
                 break
 
     env.reset()
