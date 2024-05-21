@@ -42,18 +42,17 @@ import utils
 from gazebo_msgs.msg import ModelState 
 from gazebo_msgs.srv import SetModelState
 
-import requests
 
 class Env:
     def __init__(self, action_dim=2, max_step=200):
         self.position = Pose()
-        # self.pub_cmd_vel = rospy.Publisher('cmd_vel', Twist, queue_size=1)
-        # self.sub_odom = rospy.Subscriber('odom', Odometry, self.get_odometry)
-        # self.reset_proxy = rospy.ServiceProxy('gazebo/reset_simulation', Empty)
-        # self.unpause_proxy = rospy.ServiceProxy('gazebo/unpause_physics', Empty)
-        # self.pause_proxy = rospy.ServiceProxy('gazebo/pause_physics', Empty)
+        self.pub_cmd_vel = rospy.Publisher('cmd_vel', Twist, queue_size=1)
+        self.sub_odom = rospy.Subscriber('odom', Odometry, self.get_odometry)
+        self.reset_proxy = rospy.ServiceProxy('gazebo/reset_simulation', Empty)
+        self.unpause_proxy = rospy.ServiceProxy('gazebo/unpause_physics', Empty)
+        self.pause_proxy = rospy.ServiceProxy('gazebo/pause_physics', Empty)
         self.action_dim = action_dim
-        # # Keys CTRL + c will stop script
+        # Keys CTRL + c will stop script
         rospy.on_shutdown(self.shutdown)
 
         # Added
@@ -73,22 +72,25 @@ class Env:
         self.social_safety_violation_count = 0
         self.ego_safety_violation_count = 0
         self.starting_point = Point()
-        # self.starting_point.x = rospy.get_param("/robotino/starting_pose/x")
-        # self.starting_point.y = rospy.get_param("/robotino/starting_pose/y")
-        # self.starting_point.z = rospy.get_param("/robotino/starting_pose/z")
-        self.starting_point.x, self.starting_point.y, self.rot, self.vx, self.vy, self.omega, self.sec = utils.get_odom()
+        self.starting_point.x = rospy.get_param("/robotino/starting_pose/x")
+        self.starting_point.y = rospy.get_param("/robotino/starting_pose/y")
         self.starting_point.z = rospy.get_param("/robotino/starting_pose/z")
 
-        self.original_desired_point = Point()
-        # self.original_desired_point.x = rospy.get_param("/robotino/desired_pose/x")
-        # self.original_desired_point.y = rospy.get_param("/robotino/desired_pose/y")
-        # self.original_desired_point.z = rospy.get_param("/robotino/desired_pose/z")
+        self.prev_pos = Point()
+        self.prev_pos.x = rospy.get_param("/robotino/starting_pose/x")
+        self.prev_pos.y = rospy.get_param("/robotino/starting_pose/y")
+        self.prev_pos.z = rospy.get_param("/robotino/starting_pose/z")
 
-        self.original_desired_point.x = self.starting_point.x - 1.75
-        self.original_desired_point.y = self.starting_point.y + 1.75
+        self.original_desired_point = Point()
+        self.original_desired_point.x = rospy.get_param("/robotino/desired_pose/x")
+        self.original_desired_point.y = rospy.get_param("/robotino/desired_pose/y")
         self.original_desired_point.z = rospy.get_param("/robotino/desired_pose/z")
 
-        # self.goal_points = [[-1,-1],[-1,0],[-1,1]]
+        self.obstacle_pose = [[[0,0],[-0.3,0],[0,0.3]],[[-0.5,-0.5],[0.2,0.5],[0.1,-0.3]],[[-0.5,0],[-1,0],[0,0]],
+                              [[1,0],[0.5,0],[0,0]],[[0,0.3],[0,-0.5],[0,0]],[[0,0],[0,0.5],[0,1]],
+                              [[0,-0.5],[0.5,0],[-0.5,0]],[[-0.5,-0.5],[-1,-1],[1,1]],[[-0.1,-0.1],[-0.1,0.1],[0.1,0.1]],
+                              [[0.3,-0.7],[-0.4,0],[-0.2,-0.7]]]
+        self.obstacle_pose_count = 0
 
         self.waypoint_desired_point = Point()
         self.waypoint_desired_point.x = self.original_desired_point.x
@@ -152,61 +154,64 @@ class Env:
         self.rotate_in_place_action_reward_count = 0
         self.stop_action_reward_count = 0
         self.social_nav_reward_count = 0
-        self.ego_penalty_count = 0
         self.last_action = "FORWARD"
 
         self.total_x_travelled = 0
         self.total_y_travelled = 0
 
         # RVIZ visualization markers to see Collision Probabilities of obstacles w.r.t robot's motion
-        # self.pub_obs1_pose_text = rospy.Publisher('/obstacle_text_poses/1', Marker, queue_size=1)
-        # self.pub_obs2_pose_text = rospy.Publisher('/obstacle_text_poses/2', Marker, queue_size=1)
-        # self.pub_obs3_pose_text = rospy.Publisher('/obstacle_text_poses/3', Marker, queue_size=1)
+        self.pub_obs1_pose_text = rospy.Publisher('/obstacle_text_poses/1', Marker, queue_size=1)
+        self.pub_obs2_pose_text = rospy.Publisher('/obstacle_text_poses/2', Marker, queue_size=1)
+        self.pub_obs3_pose_text = rospy.Publisher('/obstacle_text_poses/3', Marker, queue_size=1)
 
-        # self.pub_obs1_pose_shape = rospy.Publisher('/obstacle_text_shape/1', Marker, queue_size=1)
-        # self.pub_obs2_pose_shape = rospy.Publisher('/obstacle_text_shape/2', Marker, queue_size=1)
-        # self.pub_obs3_pose_shape = rospy.Publisher('/obstacle_text_shape/3', Marker, queue_size=1)
+        self.pub_obs1_pose_shape = rospy.Publisher('/obstacle_text_shape/1', Marker, queue_size=1)
+        self.pub_obs2_pose_shape = rospy.Publisher('/obstacle_text_shape/2', Marker, queue_size=1)
+        self.pub_obs3_pose_shape = rospy.Publisher('/obstacle_text_shape/3', Marker, queue_size=1)
 
         # for testing
         self.inc = 1
 
         # Obstacle rand pose change
-        # state_msg_obs1 = ModelState()
-        # state_msg_obs1.model_name = 'obstacle_1'
-        # state_msg_obs1.pose.position.x, state_msg_obs1.pose.position.y = utils.get_rand_xy()
-        # state_msg_obs1.pose.position.z = 0
-        # state_msg_obs1.pose.orientation.x = 0
-        # state_msg_obs1.pose.orientation.y = 0
-        # state_msg_obs1.pose.orientation.z = 0
-        # state_msg_obs1.pose.orientation.w = 0
+        state_msg_obs1 = ModelState()
+        state_msg_obs1.model_name = 'obstacle_1'
+        state_msg_obs1.pose.position.x, state_msg_obs1.pose.position.y = utils.get_rand_xy()
+        state_msg_obs1.pose.position.z = 0.18
+        state_msg_obs1.pose.orientation.x = 0
+        state_msg_obs1.pose.orientation.y = 0
+        state_msg_obs1.pose.orientation.z = 0
+        state_msg_obs1.pose.orientation.w = 0
 
-        # self.state_msg_obs1 = state_msg_obs1
+        self.state_msg_obs1 = state_msg_obs1
 
-        # state_msg_obs2 = ModelState()
-        # state_msg_obs2.model_name = 'obstacle_2'
-        # state_msg_obs2.pose.position.x, state_msg_obs1.pose.position.y = utils.get_rand_xy()
-        # state_msg_obs2.pose.position.z = 0
-        # state_msg_obs2.pose.orientation.x = 0
-        # state_msg_obs2.pose.orientation.y = 0
-        # state_msg_obs2.pose.orientation.z = 0
-        # state_msg_obs2.pose.orientation.w = 0
+        state_msg_obs2 = ModelState()
+        state_msg_obs2.model_name = 'obstacle_2'
+        state_msg_obs2.pose.position.x, state_msg_obs1.pose.position.y = utils.get_rand_xy()
+        state_msg_obs2.pose.position.z = 0.18
+        state_msg_obs2.pose.orientation.x = 0
+        state_msg_obs2.pose.orientation.y = 0
+        state_msg_obs2.pose.orientation.z = 0
+        state_msg_obs2.pose.orientation.w = 0
         
-        # self.state_msg_obs2 = state_msg_obs2
+        self.state_msg_obs2 = state_msg_obs2
 
-        # state_msg_obs3 = ModelState()
-        # state_msg_obs3.model_name = 'obstacle_3'
-        # state_msg_obs3.pose.position.x, state_msg_obs1.pose.position.y = utils.get_rand_xy()
-        # state_msg_obs3.pose.position.z = 0
-        # state_msg_obs3.pose.orientation.x = 0
-        # state_msg_obs3.pose.orientation.y = 0
-        # state_msg_obs3.pose.orientation.z = 0
-        # state_msg_obs3.pose.orientation.w = 0
+        state_msg_obs3 = ModelState()
+        state_msg_obs3.model_name = 'obstacle_3'
+        state_msg_obs3.pose.position.x, state_msg_obs1.pose.position.y = utils.get_rand_xy()
+        state_msg_obs3.pose.position.z = 0.18
+        state_msg_obs3.pose.orientation.x = 0
+        state_msg_obs3.pose.orientation.y = 0
+        state_msg_obs3.pose.orientation.z = 0
+        state_msg_obs3.pose.orientation.w = 0
 
-        # self.state_msg_obs3 = state_msg_obs3
+        self.state_msg_obs3 = state_msg_obs3
 
-        
+        self.ego_penalty_count = 0
         self.collision_count = 0
-        self.collision_penalty = 0
+
+        self.distance_obstacle_threshold = 0.5
+
+        self.obstacle_memory = [[0,0,0],[0,0,0]]
+        
 
     def shutdown(self):
         rospy.loginfo("Stopping TurtleBot")
@@ -240,12 +245,18 @@ class Env:
     def get_distance_to_goal(self, current_position):
         distance = self.get_distance_from_point(current_position,
                                                 self.waypoint_desired_point)
+        
+        # print("Current position to waypoint distance: " + str(distance))
+        # print("Waypoint: [" + str(self.waypoint_desired_point.x) + ", " + str(self.waypoint_desired_point.y) + "]")
 
         return distance
 
     def get_actual_distance_to_goal(self, current_position):
         distance = self.get_distance_from_point(current_position,
                                                 self.original_desired_point)
+        
+        # print("Current position to goal distance: " + str(distance))
+        # print("Goal: " + str(self.original_desired_point))
 
         return distance
 
@@ -278,6 +289,7 @@ class Env:
         return heading
 
     def get_odometry(self, odom):
+        # print("GET ODOM")
         self.position = odom.pose.pose.position
         self.orientation = odom.pose.pose.orientation
         self.linear_twist = odom.twist.twist.linear
@@ -325,7 +337,7 @@ class Env:
         self.robot_yaw = yaw
 
         if not self.done:
-            if data_bumper[0]:
+            if data_bumper[0] == 1:
                 print("DONE: MINIMUM RANGE")
                 # print("MINIMUM: ", str(min(current_scans)))
                 self.done = True
@@ -353,8 +365,12 @@ class Env:
         state = (scan_range + goal_heading_distance + agent_position + agent_orientation + agent_velocity
                  + cnn_result + data_bumper + desired_point)
 
+        # print("State: ", state)
+
         # Round items in state to 2 decimal places
         state = list(np.around(np.array(state), 3))
+
+        # print(agent_position)
 
         return state, self.done
 
@@ -363,6 +379,17 @@ class Env:
         current_distance = state[10]
 
         penalty_loop = 0
+
+        if (step_counter % 75) == 0:
+            travel_x = self.prev_pos.x - self.position.x
+            travel_y = self.prev_pos.y - self.position.y
+            self.prev_pos.x = self.position.x
+            self.prev_pos.y = self.position.y
+            # if travel_x < 0.5 and travel_y < 0.5:
+            if math.sqrt((travel_x**2) + (travel_y**2)) < 0.4:
+                # print("Robot is stuck in a loop")
+                rospy.loginfo("Robot is stuck in a loop!")
+                penalty_loop = -50
 
         distance_difference = current_distance - self.previous_distance
         heading_difference = current_heading - self.previous_heading
@@ -388,15 +415,20 @@ class Env:
         ego_penalty = 0
         if min(scan_ranges_temp) < 0.4:
             self.ego_penalty_count += 1
-            ego_penalty = -2
+            ego_penalty = -1
+
 
         # Collision penalty
-        collision_penalty = 0
-        if state[577]:
-            self.collision_count += 1
-            collision_penalty = -100
+        # collision_penalty = 0
+        # if state[577]:
+        #     self.collision_count += 1
+        #     collision_penalty = -100
 
-        non_terminating_reward = step_reward + dtg_reward + ego_penalty
+
+        # print("Passing reward: ", passing_reward)
+        # print("Obstacle memory: ", self.obstacle_memory)
+
+        non_terminating_reward = step_reward + dtg_reward + ego_penalty + penalty_loop 
         self.step_reward_count += 1
 
         if self.last_action is not None:
@@ -419,18 +451,26 @@ class Env:
             print("ego penalty count: ", str(self.ego_penalty_count))
             print("collision count: ", str(self.collision_count))
             print("----------------------------")
+            
             if self.is_in_true_desired_position(self.position):
                 rospy.loginfo("Reached goal position!!")
                 self.episode_failure = False
                 self.episode_success = True
                 goal_reward = 100
-                reward = goal_reward + non_terminating_reward
+                reward_euclid_distance_goal_to_robot = 100/(math.sqrt(((-1 - self.position.x) ** 2) + ((1 - self.position.y) ** 2))*2)
+                print("Reward euclid distance goal to robot: ", reward_euclid_distance_goal_to_robot)
+                reward = goal_reward + non_terminating_reward + round(reward_euclid_distance_goal_to_robot)
             else:
                 rospy.loginfo("Collision!!")
                 self.episode_failure = True
                 self.episode_success = False
+                reward_euclid_distance_goal_to_robot = 100/(math.sqrt(((-1 - self.position.x) ** 2) + ((1 - self.position.y) ** 2))*2)
+                # print("Reward euclid distance goal to robot: ", reward_euclid_distance_goal_to_robot)
+                early_stop_penalty = 0
+                if self.step_reward_count < 50:
+                    early_stop_penalty = -100
                 collision_reward = -100
-                reward = collision_reward + non_terminating_reward
+                reward = collision_reward + non_terminating_reward + round(reward_euclid_distance_goal_to_robot) + early_stop_penalty
             self.pub_cmd_vel.publish(Twist())
 
         return reward, done
@@ -469,21 +509,16 @@ class Env:
         if self.vel_t0 == -1:  # Reset when deque is full
             self.vel_t0 = time.time()  # Start timer to get the timelapse between two positions of agent
 
-        # Ganti jadi vx vy omega dan publish ke rest api
-        utils.post_omnidrive(vel_cmd.linear.x, vel_cmd.angular.z, self.robot_yaw)
-
-        # harusnya ini dihapus sih
         # Execute the actions to move the robot for 1 timestep
         start_timestep = time.time()
         self.pub_cmd_vel.publish(vel_cmd)
-        
         time.sleep(0.15)
         end_timestep = time.time() - start_timestep
         if end_timestep < 0.05:
             time.sleep(0.05 - end_timestep)
             end_timestep += 0.05 - end_timestep + 0.1  # Without 0.1, the velocity is doubled
         # Get agent's position in a queue list. This is for collision cone implementation.
-        self.agent_pose_deque.append([round(self.position.x, 3), round(self.position.y, 3)])
+        # self.agent_pose_deque.append([round(self.position.x, 3), round(self.position.y, 3)])
         self.agent_vel_timestep = end_timestep
         self.timestep_counter -= 1
 
@@ -492,57 +527,45 @@ class Env:
         data_laser = None
         data_bumper = None
         data_cam = None
+        # print ("hihi")
         while data_laser is None or data_bumper is None or data_cam is None:
             try:
-                data_laser = utils.get_laser()
+                data_laser = rospy.wait_for_message('scan', LaserScan, timeout=5)
                 data_bumper = utils.get_bumper_data()
-                data_cam = utils.get_cam()
+                data_cam = rospy.wait_for_message('camera/depth/image_raw', Image, timeout=5)
                 bridge = CvBridge()
                 data_cam = bridge.imgmsg_to_cv2(data_cam, desired_encoding='passthrough')
             except:
                 pass
-        
+        # print("hehe")
         state, done = self.get_state(data_laser, data_bumper, data_cam, step_counter, action)
+        # print("haha")
         reward, done = self.compute_reward(state, step_counter, done)
 
         return np.asarray(state), reward, done
 
     def reset(self):
-        # rospy.wait_for_service('gazebo/reset_simulation')
-        # try:
-        #     print("RESET PROXY")
-        #     self.reset_proxy()
-        # except rospy.ServiceException as e:
-        #     print("gazebo/reset_simulation service call failed")
-
-        # Randomize obstacle positions
-        # self.state_msg_obs1.pose.position.x, self.state_msg_obs1.pose.position.y = utils.get_rand_xy()
-        # self.state_msg_obs2.pose.position.x, self.state_msg_obs2.pose.position.y = utils.get_rand_xy()
-        # self.state_msg_obs3.pose.position.x, self.state_msg_obs3.pose.position.y = utils.get_rand_xy()
+        rospy.wait_for_service('gazebo/reset_simulation')
+        try:
+            print("RESET PROXY")
+            self.reset_proxy()
+        except rospy.ServiceException as e:
+            print("gazebo/reset_simulation service call failed")
 
         # Reset variabel
         self.ego_penalty_count = 0
 
-        # rospy.wait_for_service('/gazebo/set_model_state')
-        # try:
-        #     set_state = rospy.ServiceProxy('/gazebo/set_model_state', SetModelState)
-        #     resp1 = set_state( self.state_msg_obs1 )
-        #     resp2 = set_state( self.state_msg_obs2 )
-        #     resp3 = set_state( self.state_msg_obs3 )
-        # except rospy.ServiceException as e:
-        #     print("Service call failed: %s"%e)
-
         data_laser = None
         while data_laser is None:
             try:
-                data_laser = utils.get_laser()
+                data_laser = rospy.wait_for_message('scan', LaserScan, timeout=5)
                 data_bumper = utils.get_bumper_data()
-                data_cam = utils.get_cam()
+                data_cam = rospy.wait_for_message('camera/depth/image_raw', Image, timeout=5)
                 bridge = CvBridge()
                 data_cam = bridge.imgmsg_to_cv2(data_cam, desired_encoding='passthrough')
             except:
                 pass
-
+        # print("hoho")
         # Get random goal points
         # random_goal = np.random.randint(0,3)
         # self.original_desired_point.x = self.goal_points[random_goal][0]
@@ -555,7 +578,9 @@ class Env:
         self.previous_heading = self.get_heading_to_goal(self.position, self.orientation)
         self.previous_yaw = 3.14
         # print("data bumper: ", data_bumper)
+        # print("haha")
         state, _ = self.get_state(data_laser, data_bumper, data_cam) 
+        # print("hehe")
         # print("RESET STATE: ", state)
         # Temporary (delete)
         self.step_reward_count = 0
@@ -574,7 +599,8 @@ class Env:
         self.social_safety_violation_count = 0
         self.ego_safety_violation_count = 0
         self.obstacle_present_step_counts = 0
-
+        # self.prev_pos 
+        self.prev_pos = self.position
         return np.asarray(state)
 
     def get_episode_status(self):

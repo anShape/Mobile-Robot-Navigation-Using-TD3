@@ -661,9 +661,9 @@ def get_cam():
 
     return cam
 
-def post_omnidrive(vl, vw):
-    vx = vl*0.5
-    vy = vl*0.5
+def post_omnidrive(vl, vw, yaw):
+    vx = vl*math.cos(yaw)
+    vy = vl*math.sin(yaw)
     om = vw
     data = {
         'vx': vx,

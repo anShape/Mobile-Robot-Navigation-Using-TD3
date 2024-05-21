@@ -88,7 +88,7 @@ class Env:
 
         self.obstacle_pose = [[[0,0],[-0.3,0],[0,0.3]],[[-0.5,-0.5],[0.2,0.5],[0.1,-0.3]],[[-0.5,0],[-1,0],[0,0]],
                               [[1,0],[0.5,0],[0,0]],[[0,0.3],[0,-0.5],[0,0]],[[0,0],[0,0.5],[0,1]],
-                              [[0,-0.5],[0.5,0],[-0.5,0]],[[-0.5,-5],[-1,-1],[1,1]],[[-0.1,-0.1],[-0.1,0.1],[0.1,0.1]],
+                              [[0,-0.5],[0.5,0],[-0.5,0]],[[-0.5,-0.5],[-1,-1],[1,1]],[[-0.1,-0.1],[-0.1,0.1],[0.1,0.1]],
                               [[0.3,-0.7],[-0.4,0],[-0.2,-0.7]]]
         self.obstacle_pose_count = 0
 
@@ -289,7 +289,7 @@ class Env:
         return heading
 
     def get_odometry(self, odom):
-        print("GET ODOM")
+        # print("GET ODOM")
         self.position = odom.pose.pose.position
         self.orientation = odom.pose.pose.orientation
         self.linear_twist = odom.twist.twist.linear
@@ -385,7 +385,8 @@ class Env:
             travel_y = self.prev_pos.y - self.position.y
             self.prev_pos.x = self.position.x
             self.prev_pos.y = self.position.y
-            if travel_x < 0.5 and travel_y < 0.5:
+            # if travel_x < 0.5 and travel_y < 0.5:
+            if math.sqrt((travel_x**2) + (travel_y**2)) < 0.5:
                 # print("Robot is stuck in a loop")
                 rospy.loginfo("Robot is stuck in a loop!")
                 penalty_loop = -50
@@ -613,6 +614,7 @@ class Env:
         self.ego_safety_violation_count = 0
         self.obstacle_present_step_counts = 0
         # self.prev_pos 
+        self.prev_pos = self.position
         return np.asarray(state)
 
     def get_episode_status(self):

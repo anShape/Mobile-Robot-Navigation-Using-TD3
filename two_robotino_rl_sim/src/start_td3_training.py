@@ -11,7 +11,7 @@ import rospkg
 import utils
 import time
 # from environment_stage_1_nobonus import Env  # <-- used in latest work
-from eks_environment_stage_1_nobonus import Env
+from eeeks_environment_stage_1_nobonus import Env
 # from environment_stage_1_original import Env  # For thesis
 
 # Importing the library
@@ -38,9 +38,9 @@ if __name__ == '__main__':
     # Remove log file if exist
     # utils.remove_logfile_if_exist(result_outdir, "td3_training")
 
-    resume_epoch = 1400
+    resume_epoch = 1800
     continue_execution = True
-    learning = True
+    learning = False
     actor_resume_path = actor_model_param_path + str(resume_epoch)
     critic1_resume_path = critic1_model_param_path + str(resume_epoch)
     critic2_resume_path = critic2_model_param_path + str(resume_epoch)
@@ -61,8 +61,10 @@ if __name__ == '__main__':
         softupdate_coefficient = rospy.get_param("/robotino/tau")
         batch_size = 128
         memory_size = 1000000
-        network_inputs = 919  # 900 cnn + 19 other
-        hidden_layers = 512  # Hidden dimension
+        # network_inputs = 919  # 900 cnn + 19 other v2
+        # hidden_layers = 512  # Hidden dimension v2
+        network_inputs =  494 # 475 cnn + 19 other v3
+        hidden_layers = 256  # Hidden dimension v3
         network_outputs = 2  # Action dimension
         action_v_max = 0.22  # 0.22  # m/s
         action_w_max = 2.0  # 2.0  # rad/s
@@ -85,8 +87,8 @@ if __name__ == '__main__':
         softupdate_coefficient = rospy.get_param("/robotino/tau")
         batch_size = 128
         memory_size = 1000000
-        network_inputs = 919 
-        hidden_layers = 512  # Hidden dimension
+        network_inputs =  494 # 475 cnn + 19 other v3
+        hidden_layers = 256  # Hidden dimension v3
         network_outputs = 2  # Action dimension
         action_v_max = 0.22  # m/s
         action_w_max = 2.0  # rad/s

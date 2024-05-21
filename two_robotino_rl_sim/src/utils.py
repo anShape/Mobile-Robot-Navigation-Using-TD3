@@ -606,14 +606,21 @@ def create_rviz_visualization_shape_marker(marker, robot_pose, obs_pose, cp, mty
 def cnn(image):
 
     train_image = image.reshape(1, 240, 320, 1)
-    conv_layer = tf.keras.layers.Conv2D(16, (10, 10), strides=3, activation='relu')(train_image)
+    # v2
+    # conv_layer = tf.keras.layers.Conv2D(16, (10, 10), strides=3, activation='relu')(train_image)
+    # # conv_layer = tf.keras.layers.MaxPooling2D(2, 2)(conv_layer)
+    # conv_layer = tf.keras.layers.Conv2D(16, (3, 3), strides=2, activation='relu')(conv_layer)
+    # # conv_layer = tf.keras.layers.MaxPooling2D(2, 2)(conv_layer)
+    # conv_layer = tf.keras.layers.Conv2D(2, (3, 3), strides=2, activation='relu')(conv_layer)
+    # # conv_layer = tf.keras.layers.MaxPooling2D(2, 2)(conv_layer)
+
+    # v3
+    conv_layer = tf.keras.layers.Conv2D(32, (5, 5), strides=3, activation='relu')(train_image)
     # conv_layer = tf.keras.layers.MaxPooling2D(2, 2)(conv_layer)
     conv_layer = tf.keras.layers.Conv2D(16, (3, 3), strides=2, activation='relu')(conv_layer)
     # conv_layer = tf.keras.layers.MaxPooling2D(2, 2)(conv_layer)
-    conv_layer = tf.keras.layers.Conv2D(2, (3, 3), strides=2, activation='relu')(conv_layer)
+    conv_layer = tf.keras.layers.Conv2D(1, (3, 3), strides=2, activation='relu')(conv_layer)
     # conv_layer = tf.keras.layers.MaxPooling2D(2, 2)(conv_layer)
-    # print(conv_layer.shape)
-    # print("tes")
     conv_layer = tf.keras.layers.Flatten()(conv_layer)
     conv_layer = conv_layer.numpy()
     conv_layer = conv_layer[0]
