@@ -611,7 +611,7 @@ class Env:
         # Obstacle present step counts means the total steps where an obstacle is detected within the robot's FOV
         # Otherwise, "step" just takes in all total number of steps regardless if it sees an obstacle or not
         # social_safety_score = 1.0 - ((self.social_safety_violation_count * 1.0) / self.obstacle_present_step_counts) #original
-        social_safety_score = 1.0 - ((self.social_safety_violation_count * 1.0) / 9999) #modified
+        social_safety_score = (1.0 - (self.ego_penalty_count / step))*100 #modified
         # social_safety_score = 1.0 - ((self.social_safety_violation_count * 1.0) / step)
 
         return social_safety_score

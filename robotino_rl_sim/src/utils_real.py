@@ -670,4 +670,4 @@ def post_omnidrive(vl, vw, yaw):
         'vy': vy,
         'om': om
     }
-    requests.post('http://192.168.0.1/data/omnidrive', data=data)
+    requests.post('http://192.168.0.1/data/omnidrive', json=data)

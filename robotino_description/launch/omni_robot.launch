@@ -1,0 +1,20 @@
+<launch>
+  <!-- Launch the Gazebo simulation -->
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="world_name" value="$(find gazebo_ros)/worlds/empty.world"/>
+  </include>
+
+  <!-- Spawn the robot in Gazebo -->
+  <node name="spawn_urdf" pkg="gazebo_ros" type="spawn_model" output="screen"
+        args="-param robot_description -urdf -model omni_robot -x 0 -y 0 -z 0.1 -R 0 -P 0 -Y 0"/>
+
+  <!-- Load robot state publisher -->
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" output="screen">
+    <param name="robot_description" command="$(find xacro)/xacro '$(find robotino_description)/urdf/omni_robot.xacro'"/>
+  </node>
+
+  <!-- Launch controllers -->
+  <node name="controller_spawner" pkg="controller_manager" type="spawner" output="screen"
+        args="diff_drive_controller"/>
+</launch>
+

@@ -49,6 +49,8 @@ if __name__ == '__main__':
     critic2_path = critic2_resume_path + '.pt'
     k_obstacle_count = 3
 
+    best_reward = 0
+
     if not continue_execution:
         # Each time we take a sample and update our weights it is called a mini-batch.
         # Each time we run through the entire dataset, it's called an epoch.
@@ -112,25 +114,19 @@ if __name__ == '__main__':
         ego_safety_score = 0
 
         # Initialize the environment and get first state of the robot
-        # print("TUS")
         observation = env.reset()
         time.sleep(0.1)  # Give time for RL to reset the agent's position
         start_time = time.time()
         env.done = False
         state = observation
-        # print("TES")
         for step in range(nsteps):
             rospy.logwarn("EPISODE: " + str(ep + 1) + " | STEP: " + str(step + 1))
             step_counter += 1
             state = np.float32(state)
-            # print("tes")
             action = td3_trainer.act(state, step, add_noise=True)
             _action = action.flatten().tolist()
-            # print("tes0")
             observation, reward, done = env.step(_action, step + 1, mode="continuous")
-            # print("tes1")
             success_episode, failure_episode = env.get_episode_status()
-            # print("tes2")
             cumulated_reward += reward
 
             next_state = observation
@@ -148,28 +144,29 @@ if __name__ == '__main__':
 
             if done:
                 time_lapse = time.time() - start_time
-                social_safety_score = env.get_social_safety_violation_status(step + 1)
                 ego_safety_score = env.get_ego_safety_violation_status(step + 1)
                 # Debugging purposes
-                if (step + 1) <= 2:
-                    env.shutdown()
+                # if (step + 1) <= 2:
+                #     env.shutdown()
                     # raw_input("Press Enter to continue...")
-                if (ep + 1) % 100 == 0:
-                    # save model weights and monitoring data every 100 epochs.
-                    td3_trainer.save_actor_model(model_outdir, "td3_actor_model_ep" + str(ep + 1) + '.pt')
-                    td3_trainer.save_critic1_model(model_outdir, "td3_critic1_model_ep" + str(ep + 1) + '.pt')
-                    td3_trainer.save_critic2_model(model_outdir, "td3_critic2_model_ep" + str(ep + 1) + '.pt')
+                if cumulated_reward > best_reward:
+                    # save model weights and monitoring data every new best model found.
+                    best_reward = cumulated_reward
+                    td3_trainer.save_actor_model(model_outdir, "td3_actor_model_ep" + str(ep + 1) + "_rwd_" + best_reward + '.pt')
+                    td3_trainer.save_critic1_model(model_outdir, "td3_critic1_model_ep" + str(ep + 1) + "_rwd_" + best_reward + '.pt')
+                    td3_trainer.save_critic2_model(model_outdir, "td3_critic2_model_ep" + str(ep + 1) + "_rwd_" + best_reward + '.pt')
+                    
                 rospy.logwarn("DONE")
                 if learning:
-                    data = [ep + 1, success_episode, failure_episode, cumulated_reward, step + 1]
+                    data = [ep + 1, success_episode, cumulated_reward, step + 1, ego_safety_score, time_lapse]
                 else:
-                    data = [ep + 1, success_episode, failure_episode, cumulated_reward, step + 1, ego_safety_score,
-                            social_safety_score, time_lapse]
+                    data = [ep + 1, success_episode, cumulated_reward, step + 1, ego_safety_score, time_lapse]
                 utils.record_data(data, result_outdir, "td3_training_trajectory_test")
                 print("EPISODE REWARD: ", cumulated_reward)
+                print("BEST REWARD: ", best_reward)
                 print("EPISODE STEP: ", step + 1)
                 print("EPISODE SUCCESS: ", success_episode)
-                print("EPISODE FAILURE: ", failure_episode)
+                print("TIME LAPSE: ", time_lapse)
+                print("EGO SAFETY SCORE: ", ego_safety_score)
                 break
-            # print("tes4")
     env.reset()
