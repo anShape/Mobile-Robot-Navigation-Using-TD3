@@ -450,14 +450,14 @@ class Env:
                 self.episode_failure = False
                 self.episode_success = True
                 goal_reward = 100
-                reward_euclid_distance_goal_to_robot = 100/(math.sqrt(((-1 - self.position.x) ** 2) + ((1 - self.position.y) ** 2))*2)
+                reward_euclid_distance_goal_to_robot = 100/(math.sqrt(((self.original_desired_point.x - self.position.x) ** 2) + ((self.original_desired_point.y - self.position.y) ** 2))*2)
                 print("Reward euclid distance goal to robot: ", reward_euclid_distance_goal_to_robot)
                 reward = goal_reward + non_terminating_reward + round(reward_euclid_distance_goal_to_robot)
             else:
                 rospy.loginfo("Collision!!")
                 self.episode_failure = True
                 self.episode_success = False
-                reward_euclid_distance_goal_to_robot = 100/(math.sqrt(((-1 - self.position.x) ** 2) + ((1 - self.position.y) ** 2))*2)
+                reward_euclid_distance_goal_to_robot = 100/(math.sqrt(((self.original_desired_point.x - self.position.x) ** 2) + ((self.original_desired_point.y - self.position.y) ** 2))*2)
                 # print("Reward euclid distance goal to robot: ", reward_euclid_distance_goal_to_robot)
                 early_stop_penalty = 0
                 if self.step_reward_count < 50:
