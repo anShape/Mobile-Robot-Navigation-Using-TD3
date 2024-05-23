@@ -38,10 +38,9 @@ if __name__ == '__main__':
     # Remove log file if exist
     # utils.remove_logfile_if_exist(result_outdir, "td3_training")
 
-    stage = 1
     resume_epoch = 1800
-    continue_execution = False
-    learning = True
+    continue_execution = True
+    learning = False
     actor_resume_path = actor_model_param_path + str(resume_epoch)
     critic1_resume_path = critic1_model_param_path + str(resume_epoch)
     critic2_resume_path = critic2_model_param_path + str(resume_epoch)
@@ -66,7 +65,7 @@ if __name__ == '__main__':
         memory_size = 1000000
         # network_inputs = 919  # 900 cnn + 19 other v2
         # hidden_layers = 512  # Hidden dimension v2
-        network_inputs = 579  # 560 cnn + 19 other v3
+        network_inputs =  494 # 475 cnn + 19 other v3
         hidden_layers = 256  # Hidden dimension v3
         network_outputs = 2  # Action dimension
         action_v_max = 0.22  # 0.22  # m/s
@@ -90,7 +89,7 @@ if __name__ == '__main__':
         softupdate_coefficient = rospy.get_param("/robotino/tau")
         batch_size = 128
         memory_size = 1000000
-        network_inputs =  579 # 560 cnn + 19 other v3
+        network_inputs =  494 # 475 cnn + 19 other v3
         hidden_layers = 256  # Hidden dimension v3
         network_outputs = 2  # Action dimension
         action_v_max = 0.22  # m/s
@@ -153,14 +152,9 @@ if __name__ == '__main__':
                 if cumulated_reward > best_reward:
                     # save model weights and monitoring data every new best model found.
                     best_reward = cumulated_reward
-                    td3_trainer.save_actor_model(model_outdir, "stage_" + str(stage) + "_best_td3_actor_model_ep" + str(ep + 1) + "_rwd_" + best_reward + '.pt')
-                    td3_trainer.save_critic1_model(model_outdir, "stage_" + str(stage) + "_best_td3_critic1_model_ep" + str(ep + 1) + "_rwd_" + best_reward + '.pt')
-                    td3_trainer.save_critic2_model(model_outdir, "stage_" + str(stage) + "_best_td3_critic2_model_ep" + str(ep + 1) + "_rwd_" + best_reward + '.pt')
-                if (ep + 1) % 100 == 0:
-                    # save model weights and monitoring data every 100 epochs.
-                    td3_trainer.save_actor_model(model_outdir, "stage_" + str(stage) + "_td3_actor_model_ep" + str(ep + 1) + '.pt')
-                    td3_trainer.save_critic1_model(model_outdir, "stage_" + str(stage) + "_td3_critic1_model_ep" + str(ep + 1) + '.pt')
-                    td3_trainer.save_critic2_model(model_outdir, "stage_" + str(stage) + "_td3_critic2_model_ep" + str(ep + 1) + '.pt')
+                    td3_trainer.save_actor_model(model_outdir, "td3_actor_model_ep" + str(ep + 1) + "_rwd_" + best_reward + '.pt')
+                    td3_trainer.save_critic1_model(model_outdir, "td3_critic1_model_ep" + str(ep + 1) + "_rwd_" + best_reward + '.pt')
+                    td3_trainer.save_critic2_model(model_outdir, "td3_critic2_model_ep" + str(ep + 1) + "_rwd_" + best_reward + '.pt')
                     
                 rospy.logwarn("DONE")
                 if learning:

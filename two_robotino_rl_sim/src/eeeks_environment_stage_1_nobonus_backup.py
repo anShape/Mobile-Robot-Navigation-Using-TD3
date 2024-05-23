@@ -411,10 +411,9 @@ class Env:
         scan_ranges_temp = []
         for i in range(9):
             scan_ranges_temp.append(state[i])
-        # print(min(scan_ranges_temp))
         
         ego_penalty = 0
-        if min(scan_ranges_temp) < 0.402:
+        if min(scan_ranges_temp) < 0.4:
             self.ego_penalty_count += 1
             ego_penalty = -1
 
@@ -442,7 +441,15 @@ class Env:
             print("step penalty count: ", str(self.step_reward_count))
             print("dtg reward count: ", str(self.dtg_reward_count))
             print("dtg penalty count: ", str(self.dtg_penalty_count))
+            print("htg reward count: ", str(self.htg_reward_count))
+            print("htg penalty count: ", str(self.htg_penalty_count))
+            print("forward action reward count: ", str(self.forward_action_reward_count))
+            print("left action reward count: ", str(self.left_turn_action_reward_count))
+            print("right action reward count: ", str(self.right_turn_action_reward_count))
+            print("stop action reward count: ", str(self.stop_action_reward_count))
+            print("social nav reward count: ", str(self.social_nav_reward_count))
             print("ego penalty count: ", str(self.ego_penalty_count))
+            print("collision count: ", str(self.collision_count))
             print("----------------------------")
             
             if self.is_in_true_desired_position(self.position):
@@ -613,8 +620,7 @@ class Env:
         # Obstacle present step counts means the total steps where an obstacle is detected within the robot's FOV
         # Otherwise, "step" just takes in all total number of steps regardless if it sees an obstacle or not
         # ego_safety_score = 1.0 - ((self.ego_safety_violation_count * 1.0) / self.obstacle_present_step_counts)
-        # ego_safety_score = 1.0 - ((self.ego_safety_violation_count * 1.0) / 9999)
-        ego_safety_score = (1.0 - (self.ego_penalty_count / step))*100 #modified
+        ego_safety_score = 1.0 - ((self.ego_safety_violation_count * 1.0) / 9999)
         # ego_safety_score = 1.0 - ((self.ego_safety_violation_count * 1.0) / step)
 
         return ego_safety_score
