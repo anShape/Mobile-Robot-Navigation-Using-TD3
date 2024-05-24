@@ -389,7 +389,7 @@ class Env:
             if math.sqrt((travel_x**2) + (travel_y**2)) < 0.4:
                 # print("Robot is stuck in a loop")
                 rospy.loginfo("Robot is stuck in a loop!")
-                penalty_loop = -50
+                penalty_loop = -100
 
         distance_difference = current_distance - self.previous_distance
         heading_difference = current_heading - self.previous_heading
@@ -461,7 +461,7 @@ class Env:
                 # print("Reward euclid distance goal to robot: ", reward_euclid_distance_goal_to_robot)
                 early_stop_penalty = 0
                 if self.step_reward_count < 50:
-                    early_stop_penalty = -100
+                    early_stop_penalty = -75
                 collision_reward = -100
                 reward = collision_reward + non_terminating_reward + round(reward_euclid_distance_goal_to_robot) + early_stop_penalty
             self.pub_cmd_vel.publish(Twist())

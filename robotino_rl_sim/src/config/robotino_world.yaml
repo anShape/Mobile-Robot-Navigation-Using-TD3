@@ -14,7 +14,7 @@ robotino: #namespace
 
     desired_pose:
       x: -1 # Change to -2.0 for testing environment
-      y: 1 # Change to 2.0 for testing environment
+      y: -1 # Change to 2.0 for testing environment
       z: 0.0
 
     starting_pose:

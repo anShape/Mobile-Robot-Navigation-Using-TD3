@@ -158,28 +158,28 @@ if __name__ == '__main__':
                 if cumulated_reward > best_reward:
                     # save model weights and monitoring data every new best model found based on reward.
                     best_reward = cumulated_reward
-                    td3_trainer.save_actor_model(model_outdir, "stage_" + str(stage) + "_best_actor_ep" + str(ep + 1) + "_reward_" + str(best_reward) + '.pt')
-                    td3_trainer.save_critic1_model(model_outdir, "stage_" + str(stage) + "_best_critic1_ep" + str(ep + 1) + "_reward_" + str(best_reward) + '.pt')
-                    td3_trainer.save_critic2_model(model_outdir, "stage_" + str(stage) + "_best_critic2_ep" + str(ep + 1) + "_reward_" + str(best_reward) + '.pt')
+                    # td3_trainer.save_actor_model(model_outdir, "stage_" + str(stage) + "_best_actor_ep" + str(ep + 1) + "_reward_" + str(best_reward) + '.pt')
+                    # td3_trainer.save_critic1_model(model_outdir, "stage_" + str(stage) + "_best_critic1_ep" + str(ep + 1) + "_reward_" + str(best_reward) + '.pt')
+                    # td3_trainer.save_critic2_model(model_outdir, "stage_" + str(stage) + "_best_critic2_ep" + str(ep + 1) + "_reward_" + str(best_reward) + '.pt')
                 if time_lapse < best_time:
                     # save model weights and monitoring data every new best model found based on time.
                     best_time = time_lapse
-                    td3_trainer.save_actor_model(model_outdir, "stage_" + str(stage) + "_best_actor_ep" + str(ep + 1) + "_time_" + str(best_time) + '.pt')
-                    td3_trainer.save_critic1_model(model_outdir, "stage_" + str(stage) + "_best_critic1_ep" + str(ep + 1) + "_time_" + str(best_time) + '.pt')
-                    td3_trainer.save_critic2_model(model_outdir, "stage_" + str(stage) + "_best_critic2_ep" + str(ep + 1) + "_time_" + str(best_time) + '.pt')
+                    # td3_trainer.save_actor_model(model_outdir, "stage_" + str(stage) + "_best_actor_ep" + str(ep + 1) + "_time_" + str(best_time) + '.pt')
+                    # td3_trainer.save_critic1_model(model_outdir, "stage_" + str(stage) + "_best_critic1_ep" + str(ep + 1) + "_time_" + str(best_time) + '.pt')
+                    # td3_trainer.save_critic2_model(model_outdir, "stage_" + str(stage) + "_best_critic2_ep" + str(ep + 1) + "_time_" + str(best_time) + '.pt')
                 if ego_safety_score < best_ego_safety:
                     # save model weights and monitoring data every new best model found based on ego score.
                     best_ego_safety = ego_safety_score
-                    td3_trainer.save_actor_model(model_outdir, "stage_" + str(stage) + "_best_actor_ep" + str(ep + 1) + "_ego_" + str(best_reward) + '.pt')
-                    td3_trainer.save_critic1_model(model_outdir, "stage_" + str(stage) + "_best_critic1_ep" + str(ep + 1) + "_ego_" + str(best_reward) + '.pt')
-                    td3_trainer.save_critic2_model(model_outdir, "stage_" + str(stage) + "_best_critic2_ep" + str(ep + 1) + "_ego_" + str(best_reward) + '.pt')
+                    # td3_trainer.save_actor_model(model_outdir, "stage_" + str(stage) + "_best_actor_ep" + str(ep + 1) + "_ego_" + str(best_reward) + '.pt')
+                    # td3_trainer.save_critic1_model(model_outdir, "stage_" + str(stage) + "_best_critic1_ep" + str(ep + 1) + "_ego_" + str(best_reward) + '.pt')
+                    # td3_trainer.save_critic2_model(model_outdir, "stage_" + str(stage) + "_best_critic2_ep" + str(ep + 1) + "_ego_" + str(best_reward) + '.pt')
                     
                 rospy.logwarn("DONE")
                 if learning:
                     data = [ep + 1, success_episode, cumulated_reward, step + 1, ego_safety_score, time_lapse]
                 else:
                     data = [ep + 1, success_episode, cumulated_reward, step + 1, ego_safety_score, time_lapse]
-                utils.record_data(data, result_outdir, "td3_training_trajectory")
+                utils.record_data(data, result_outdir, "td3_test_trajectory")
                 print("EPISODE REWARD: ", cumulated_reward)
                 print("BEST REWARD: ", best_reward)
                 print("EPISODE STEP: ", step + 1)
