@@ -39,77 +39,47 @@ if __name__ == '__main__':
     # utils.remove_logfile_if_exist(result_outdir, "td3_training")
 
     stage = 1
-    resume_epoch = 1171
+    resume_epoch = 0
     continue_execution = False
-    learning = True
+    learning = False
     # actor_resume_path = actor_model_param_path + str(resume_epoch)
     # critic1_resume_path = critic1_model_param_path + str(resume_epoch)
     # critic2_resume_path = critic2_model_param_path + str(resume_epoch)
-    actor_resume_path = '/home/ihsan/catkin_ws/src/two_robotino_rl_sim/src/models/td3/training/stage_1_best_td3_actor_model_ep1171_rwd_398'
-    critic1_resume_path = '/home/ihsan/catkin_ws/src/two_robotino_rl_sim/src/models/td3/training/stage_1_best_td3_critic1_model_ep1171_rwd_398'
-    critic2_resume_path = '/home/ihsan/catkin_ws/src/two_robotino_rl_sim/src/models/td3/training/stage_1_best_td3_critic2_model_ep1171_rwd_398'
+    actor_resume_path = '/home/ihsan/catkin_ws/src/two_robotino_rl_sim/src/models/td3/training/stage_1_best_actor_ep1555_reward_404'
+    critic1_resume_path = '/home/ihsan/catkin_ws/src/two_robotino_rl_sim/src/models/td3/training/stage_1_best_critic1_ep1555_reward_404'
+    critic2_resume_path = '/home/ihsan/catkin_ws/src/two_robotino_rl_sim/src/models/td3/training/stage_1_best_critic2_ep1555_reward_404'
     actor_path = actor_resume_path + '.pt'
     critic1_path = critic1_resume_path + '.pt'
     critic2_path = critic2_resume_path + '.pt'
     k_obstacle_count = 3
 
+    nepisodes = 5
+    nsteps = 300
+    actor_learning_rate = rospy.get_param("/robotino/actor_alpha")
+    critic_learning_rate = rospy.get_param("/robotino/critic_alpha")
+    discount_factor = rospy.get_param("/robotino/gamma")
+    softupdate_coefficient = rospy.get_param("/robotino/tau")
+    batch_size = 128
+    memory_size = 1000000
+    network_inputs =  579 # 560 cnn + 19 other v4
+    hidden_layers = 256  # Hidden dimension v4
+    network_outputs = 2  # Action dimension
+    action_v_max = 0.22  # m/s
+    action_w_max = 2.0  # rad/s
+    # resume_epoch = 100
+    noise_std = 0.2
+    noise_clip = 0.5
+    policy_update = 2
+
+    td3_trainer = td3.Agent(network_inputs, network_outputs, hidden_layers, actor_learning_rate,
+                            critic_learning_rate, batch_size, memory_size, discount_factor,
+                            softupdate_coefficient, action_v_max, action_w_max, noise_std, noise_clip,
+                            policy_update)
+    td3_trainer.load_models(actor_path, critic1_path, critic2_path)
+        
     best_reward = 0
     best_time = 120
     best_ego_safety = 100
-
-    if not continue_execution:
-        # Each time we take a sample and update our weights it is called a mini-batch.
-        # Each time we run through the entire dataset, it's called an epoch.
-        # PARAMETER LIST
-        nepisodes = rospy.get_param("/robotino/nepisodes")
-        nsteps = rospy.get_param("/robotino/nsteps")
-        actor_learning_rate = rospy.get_param("/robotino/actor_alpha")
-        critic_learning_rate = rospy.get_param("/robotino/critic_alpha")
-        discount_factor = rospy.get_param("/robotino/gamma")
-        softupdate_coefficient = rospy.get_param("/robotino/tau")
-        batch_size = 128
-        memory_size = 1000000
-        # network_inputs = 919  # 900 cnn + 19 other v2
-        # hidden_layers = 512  # Hidden dimension v2
-        network_inputs = 579  # 560 cnn + 19 other v4
-        hidden_layers = 256  # Hidden dimension v4
-        network_outputs = 2  # Action dimension
-        action_v_max = 0.22  # 0.22  # m/s
-        action_w_max = 2.0  # 2.0  # rad/s
-        resume_epoch = 0
-        noise_std = 0.2
-        noise_clip = 0.5
-        policy_update = 2
-
-        td3_trainer = td3.Agent(network_inputs, network_outputs, hidden_layers, actor_learning_rate,
-                                critic_learning_rate, batch_size, memory_size, discount_factor,
-                                softupdate_coefficient, action_v_max, action_w_max, noise_std, noise_clip,
-                                policy_update)
-
-    else: #belum diapa-apain
-        nepisodes = rospy.get_param("/robotino/nepisodes")
-        nsteps = rospy.get_param("/robotino/nsteps")
-        actor_learning_rate = rospy.get_param("/robotino/actor_alpha")
-        critic_learning_rate = rospy.get_param("/robotino/critic_alpha")
-        discount_factor = rospy.get_param("/robotino/gamma")
-        softupdate_coefficient = rospy.get_param("/robotino/tau")
-        batch_size = 128
-        memory_size = 1000000
-        network_inputs =  579 # 560 cnn + 19 other v4
-        hidden_layers = 256  # Hidden dimension v4
-        network_outputs = 2  # Action dimension
-        action_v_max = 0.22  # m/s
-        action_w_max = 2.0  # rad/s
-        # resume_epoch = 100
-        noise_std = 0.2
-        noise_clip = 0.5
-        policy_update = 2
-
-        td3_trainer = td3.Agent(network_inputs, network_outputs, hidden_layers, actor_learning_rate,
-                                critic_learning_rate, batch_size, memory_size, discount_factor,
-                                softupdate_coefficient, action_v_max, action_w_max, noise_std, noise_clip,
-                                policy_update)
-        td3_trainer.load_models(actor_path, critic1_path, critic2_path)
 
     step_counter = 0
     time_lapse = 0
@@ -138,47 +108,29 @@ if __name__ == '__main__':
             next_state = observation
             next_state = np.float32(next_state)
 
-            # Learning
-            if learning:
-                td3_trainer.memory.add(state, action, reward, next_state, done)
-                if len(td3_trainer.memory) > batch_size:
-                    td3_trainer.learn(step)
-            # print("tes3")
             if not done:
-                # rospy.logwarn("NOT DONE")
                 state = next_state
 
             if done:
                 time_lapse = time.time() - start_time
                 ego_safety_score = env.get_ego_safety_violation_status(step + 1)
-                # Debugging purposes
-                # if (step + 1) <= 2:
-                #     env.shutdown()
-                    # raw_input("Press Enter to continue...")
+
                 if cumulated_reward > best_reward:
                     # save model weights and monitoring data every new best model found based on reward.
                     best_reward = cumulated_reward
-                    # td3_trainer.save_actor_model(model_outdir, "stage_" + str(stage) + "_best_actor_ep" + str(ep + 1) + "_reward_" + str(best_reward) + '.pt')
-                    # td3_trainer.save_critic1_model(model_outdir, "stage_" + str(stage) + "_best_critic1_ep" + str(ep + 1) + "_reward_" + str(best_reward) + '.pt')
-                    # td3_trainer.save_critic2_model(model_outdir, "stage_" + str(stage) + "_best_critic2_ep" + str(ep + 1) + "_reward_" + str(best_reward) + '.pt')
+                    
                 if time_lapse < best_time:
                     # save model weights and monitoring data every new best model found based on time.
                     best_time = time_lapse
-                    # td3_trainer.save_actor_model(model_outdir, "stage_" + str(stage) + "_best_actor_ep" + str(ep + 1) + "_time_" + str(best_time) + '.pt')
-                    # td3_trainer.save_critic1_model(model_outdir, "stage_" + str(stage) + "_best_critic1_ep" + str(ep + 1) + "_time_" + str(best_time) + '.pt')
-                    # td3_trainer.save_critic2_model(model_outdir, "stage_" + str(stage) + "_best_critic2_ep" + str(ep + 1) + "_time_" + str(best_time) + '.pt')
+
                 if ego_safety_score < best_ego_safety:
                     # save model weights and monitoring data every new best model found based on ego score.
                     best_ego_safety = ego_safety_score
-                    # td3_trainer.save_actor_model(model_outdir, "stage_" + str(stage) + "_best_actor_ep" + str(ep + 1) + "_ego_" + str(best_reward) + '.pt')
-                    # td3_trainer.save_critic1_model(model_outdir, "stage_" + str(stage) + "_best_critic1_ep" + str(ep + 1) + "_ego_" + str(best_reward) + '.pt')
-                    # td3_trainer.save_critic2_model(model_outdir, "stage_" + str(stage) + "_best_critic2_ep" + str(ep + 1) + "_ego_" + str(best_reward) + '.pt')
                     
                 rospy.logwarn("DONE")
-                if learning:
-                    data = [ep + 1, success_episode, cumulated_reward, step + 1, ego_safety_score, time_lapse]
-                else:
-                    data = [ep + 1, success_episode, cumulated_reward, step + 1, ego_safety_score, time_lapse]
+                
+                data = [ep + 1, success_episode, cumulated_reward, step + 1, ego_safety_score, time_lapse]
+
                 utils.record_data(data, result_outdir, "td3_test_trajectory")
                 print("EPISODE REWARD: ", cumulated_reward)
                 print("BEST REWARD: ", best_reward)
