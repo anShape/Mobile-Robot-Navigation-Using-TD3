@@ -11,7 +11,7 @@ import rospkg
 import utils
 import time
 # from environment_stage_1_nobonus import Env  # <-- used in latest work
-from eeeks_environment_stage_1_nobonus import Env
+from eeeks_environment_stage_2_nobonus import Env
 # from environment_stage_1_original import Env  # For thesis
 
 # Importing the library
@@ -38,16 +38,16 @@ if __name__ == '__main__':
     # Remove log file if exist
     # utils.remove_logfile_if_exist(result_outdir, "td3_training")
 
-    stage = 1
-    resume_epoch = 1171
-    continue_execution = False
+    stage = 2
+    resume_epoch = 0
+    continue_execution = True
     learning = True
     # actor_resume_path = actor_model_param_path + str(resume_epoch)
     # critic1_resume_path = critic1_model_param_path + str(resume_epoch)
     # critic2_resume_path = critic2_model_param_path + str(resume_epoch)
-    actor_resume_path = '/home/ihsan/catkin_ws/src/two_robotino_rl_sim/src/models/td3/training/stage_1_best_td3_actor_model_ep1171_rwd_398'
-    critic1_resume_path = '/home/ihsan/catkin_ws/src/two_robotino_rl_sim/src/models/td3/training/stage_1_best_td3_critic1_model_ep1171_rwd_398'
-    critic2_resume_path = '/home/ihsan/catkin_ws/src/two_robotino_rl_sim/src/models/td3/training/stage_1_best_td3_critic2_model_ep1171_rwd_398'
+    actor_resume_path = '/home/ihsan/catkin_ws/src/two_robotino_rl_sim/src/models/td3/training/stage_1_best_actor_ep1555_reward_404'
+    critic1_resume_path = '/home/ihsan/catkin_ws/src/two_robotino_rl_sim/src/models/td3/training/stage_1_best_critic1_ep1555_reward_404'
+    critic2_resume_path = '/home/ihsan/catkin_ws/src/two_robotino_rl_sim/src/models/td3/training/stage_1_best_critic2_ep1555_reward_404'
     actor_path = actor_resume_path + '.pt'
     critic1_path = critic1_resume_path + '.pt'
     critic2_path = critic2_resume_path + '.pt'
@@ -164,15 +164,15 @@ if __name__ == '__main__':
                 if time_lapse < best_time:
                     # save model weights and monitoring data every new best model found based on time.
                     best_time = time_lapse
-                    td3_trainer.save_actor_model(model_outdir, "stage_" + str(stage) + "_best_actor_ep" + str(ep + 1) + "_time_" + str(best_time) + '.pt')
-                    td3_trainer.save_critic1_model(model_outdir, "stage_" + str(stage) + "_best_critic1_ep" + str(ep + 1) + "_time_" + str(best_time) + '.pt')
-                    td3_trainer.save_critic2_model(model_outdir, "stage_" + str(stage) + "_best_critic2_ep" + str(ep + 1) + "_time_" + str(best_time) + '.pt')
+                    # td3_trainer.save_actor_model(model_outdir, "stage_" + str(stage) + "_best_actor_ep" + str(ep + 1) + "_time_" + str(best_time) + '.pt')
+                    # td3_trainer.save_critic1_model(model_outdir, "stage_" + str(stage) + "_best_critic1_ep" + str(ep + 1) + "_time_" + str(best_time) + '.pt')
+                    # td3_trainer.save_critic2_model(model_outdir, "stage_" + str(stage) + "_best_critic2_ep" + str(ep + 1) + "_time_" + str(best_time) + '.pt')
                 if ego_safety_score < best_ego_safety:
                     # save model weights and monitoring data every new best model found based on ego score.
                     best_ego_safety = ego_safety_score
-                    td3_trainer.save_actor_model(model_outdir, "stage_" + str(stage) + "_best_actor_ep" + str(ep + 1) + "_ego_" + str(best_reward) + '.pt')
-                    td3_trainer.save_critic1_model(model_outdir, "stage_" + str(stage) + "_best_critic1_ep" + str(ep + 1) + "_ego_" + str(best_reward) + '.pt')
-                    td3_trainer.save_critic2_model(model_outdir, "stage_" + str(stage) + "_best_critic2_ep" + str(ep + 1) + "_ego_" + str(best_reward) + '.pt')
+                    # td3_trainer.save_actor_model(model_outdir, "stage_" + str(stage) + "_best_actor_ep" + str(ep + 1) + "_ego_" + str(best_reward) + '.pt')
+                    # td3_trainer.save_critic1_model(model_outdir, "stage_" + str(stage) + "_best_critic1_ep" + str(ep + 1) + "_ego_" + str(best_reward) + '.pt')
+                    # td3_trainer.save_critic2_model(model_outdir, "stage_" + str(stage) + "_best_critic2_ep" + str(ep + 1) + "_ego_" + str(best_reward) + '.pt')
                     
                 rospy.logwarn("DONE")
                 if learning:
