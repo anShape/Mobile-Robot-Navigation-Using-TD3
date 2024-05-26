@@ -11,8 +11,9 @@ import rospkg
 import utils
 import time
 # from environment_stage_1_nobonus import Env  # <-- used in latest work
-from eeeks_environment_stage_2_nobonus import Env
+# from eeeks_environment_stage_4_nobonus import Env
 # from environment_stage_1_original import Env  # For thesis
+from eksperiment_environment import Env
 
 # Importing the library
 import psutil
@@ -38,16 +39,16 @@ if __name__ == '__main__':
     # Remove log file if exist
     # utils.remove_logfile_if_exist(result_outdir, "td3_training")
 
-    stage = 2
+    stage = 99
     resume_epoch = 0
     continue_execution = True
     learning = True
     # actor_resume_path = actor_model_param_path + str(resume_epoch)
     # critic1_resume_path = critic1_model_param_path + str(resume_epoch)
     # critic2_resume_path = critic2_model_param_path + str(resume_epoch)
-    actor_resume_path = '/home/ihsan/catkin_ws/src/two_robotino_rl_sim/src/models/td3/training/stage_1_best_actor_ep1555_reward_404'
-    critic1_resume_path = '/home/ihsan/catkin_ws/src/two_robotino_rl_sim/src/models/td3/training/stage_1_best_critic1_ep1555_reward_404'
-    critic2_resume_path = '/home/ihsan/catkin_ws/src/two_robotino_rl_sim/src/models/td3/training/stage_1_best_critic2_ep1555_reward_404'
+    actor_resume_path = '/home/ihsan/catkin_ws/src/two_robotino_rl_sim/src/models/td3/training/stage_3_best_actor_ep1108_reward_398'
+    critic1_resume_path = '/home/ihsan/catkin_ws/src/two_robotino_rl_sim/src/models/td3/training/stage_3_best_critic1_ep1108_reward_398'
+    critic2_resume_path = '/home/ihsan/catkin_ws/src/two_robotino_rl_sim/src/models/td3/training/stage_3_best_critic2_ep1108_reward_398'
     actor_path = actor_resume_path + '.pt'
     critic1_path = critic1_resume_path + '.pt'
     critic2_path = critic2_resume_path + '.pt'
@@ -67,6 +68,7 @@ if __name__ == '__main__':
         critic_learning_rate = rospy.get_param("/robotino/critic_alpha")
         discount_factor = rospy.get_param("/robotino/gamma")
         softupdate_coefficient = rospy.get_param("/robotino/tau")
+        # batch_size = 512
         batch_size = 128
         memory_size = 1000000
         # network_inputs = 919  # 900 cnn + 19 other v2
