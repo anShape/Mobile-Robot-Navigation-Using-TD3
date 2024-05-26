@@ -455,7 +455,7 @@ class Env:
                 # reward_euclid_distance_goal_to_robot = 100*(math.sqrt(((self.original_desired_point.x - self.position.x) ** 2) + ((self.original_desired_point.y - self.position.y) ** 2))*2)
                 # print("Reward euclid distance goal to robot: ", reward_euclid_distance_goal_to_robot)
                 time_lapse = time.time() - self.start_time
-                reward_time = 100 - (time_lapse*2)
+                reward_time = 200 - (time_lapse*2)
                 reward = goal_reward + non_terminating_reward + round(reward_time)
             else:
                 rospy.loginfo("Collision!!")
