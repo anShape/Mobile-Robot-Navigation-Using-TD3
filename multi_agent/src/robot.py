@@ -42,6 +42,10 @@ import utils
 from gazebo_msgs.msg import ModelState 
 from gazebo_msgs.srv import SetModelState
 
+# from multi_agent.msg import num
+from std_msgs.msg import Int32MultiArray
+from my_service_package.srv import get_action, save_model
+
 
 class Env:
     def __init__(self, action_dim=2, max_step=200):
@@ -572,3 +576,93 @@ class Env:
         is_in_desired_pos = x_pos_are_close and y_pos_are_close
 
         return is_in_desired_pos
+
+
+
+def main():
+    pub = rospy.Publisher('state', Int32MultiArray, queue_size=10)
+    state = Int32MultiArray()
+    rospy.init_node('robot', anonymous=True)
+    env = Env(action_dim=2, max_step=200)
+
+    resume_epoch = 0
+    nepisodes = 3000
+    nsteps = 200
+    learning = True
+
+    for ep in range(resume_epoch, nepisodes):
+        rospy.logwarn("EPISODE: " + str(ep + 1))
+        cumulated_reward = 0
+        ego_safety_score = 0
+
+        # Initialize the environment and get first state of the robot
+        observation = env.reset()
+        time.sleep(0.1)  # Give time for RL to reset the agent's position
+        start_time = time.time()
+        env.done = False
+        state.data = observation
+        pub.publish(state)
+        for step in range(nsteps):
+            rospy.logwarn("EPISODE: " + str(ep + 1) + " | STEP: " + str(step + 1))
+            step_counter += 1
+            rospy.wait_for_service('get_action')
+            try:
+                _get_action = rospy.ServiceProxy('get_action', get_action)
+                action = (_get_action(state))
+            except rospy.ServiceException as e:
+                print("Service call failed: %s" % e)
+            _action = action.flatten().tolist()
+            next_state, done = env.step(_action, step + 1, mode="continuous")
+            reward, done = env.compute_reward(next_state, step, done)
+            success_episode = env.get_episode_status()
+            cumulated_reward += reward
+
+            next_state = np.float32(next_state)
+
+            # Learning
+            if learning:
+                rospy.wait_for_service('learn')
+                try:
+                    _learn = rospy.ServiceProxy('learn', learn)
+                    learn = (_learn(state, action, reward, next_state, done))
+                except rospy.ServiceException as e:
+                    print("Service call failed: %s" % e)
+
+            if not done:
+                # rospy.logwarn("NOT DONE")
+                state = next_state
+
+            if done:
+                time_lapse = time.time() - start_time
+                social_safety_score = env.get_social_safety_violation_status(step + 1)
+                ego_safety_score = env.get_ego_safety_violation_status(step + 1)
+                # Debugging purposes
+                if (step + 1) <= 2:
+                    env.shutdown()
+                    # raw_input("Press Enter to continue...")
+                # Save model
+                if learning:
+                    rospy.wait_for_service('save_model')
+                    try:
+                        _save = rospy.ServiceProxy('save_model', save_model)
+                        resp = (_save(step))
+                    except rospy.ServiceException as e:
+                        print("Service call failed: %s" % e)
+                rospy.logwarn("DONE")
+                if learning:
+                    data = [ep + 1, success_episode, cumulated_reward, step + 1]
+                else:
+                    data = [ep + 1, success_episode, cumulated_reward, step + 1, ego_safety_score,
+                            social_safety_score, time_lapse]
+                utils.record_data(data, '/src/results/td3/training/', "td3_training_trajectory_test")
+                print("EPISODE REWARD: ", cumulated_reward)
+                print("EPISODE STEP: ", step + 1)
+                print("EPISODE SUCCESS: ", success_episode)
+                break
+
+    env.reset()
+
+    rospy.spin()
+
+if __name__ == "__main__":
+    main()

@@ -9,11 +9,14 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
+import rospy
+
 
 # USE CUDA GPU if available
 use_cuda = torch.cuda.is_available()
 device = torch.device("cuda" if use_cuda else "cpu")
 
+from my_service_package.srv import learn, save_model, get_action
 
 # Experience Replay memory
 class ReplayBuffer:
@@ -317,3 +320,47 @@ class Agent:
         self.hard_update(self.actor_target, self.actor_local)
         self.hard_update(self.critic_target1, self.critic_local1)
         self.hard_update(self.critic_target2, self.critic_local2)
+
+    def get_action(self, state):
+        state = torch.FloatTensor(state).to(device)
+        action = self.actor_local(state).cpu().data.numpy()
+        return action
+    
+    def save_model(self, outdir, name):
+        torch.save(self.actor_local.state_dict(), outdir + '/' + str(name) + '_actor.pt')
+        torch.save(self.critic_local1.state_dict(), outdir + '/' + str(name) + '_critic1.pt')
+        torch.save(self.critic_local2.state_dict(), outdir + '/' + str(name) + '_critic2.pt')
+
+def main():
+    nepisodes = rospy.get_param("/robotino/nepisodes")
+    nsteps = rospy.get_param("/robotino/nsteps")
+    actor_learning_rate = rospy.get_param("/robotino/actor_alpha")
+    critic_learning_rate = rospy.get_param("/robotino/critic_alpha")
+    discount_factor = rospy.get_param("/robotino/gamma")
+    softupdate_coefficient = rospy.get_param("/robotino/tau")
+    batch_size = 128
+    memory_size = 1000000
+    network_inputs = 579  # 370 #74 #38 #54  # State dimension
+    hidden_layers = 256  # Hidden dimension
+    network_outputs = 2  # Action dimension
+    action_v_max = 0.22  # 0.22  # m/s
+    action_w_max = 2.0  # 2.0  # rad/s
+    resume_epoch = 0
+    noise_std = 0.2
+    noise_clip = 0.5
+    policy_update = 2
+
+    td3_trainer = Agent(network_inputs, network_outputs, hidden_layers, actor_learning_rate,
+                            critic_learning_rate, batch_size, memory_size, discount_factor,
+                            softupdate_coefficient, action_v_max, action_w_max, noise_std, noise_clip,
+                            policy_update)
+    
+    rospy.init_node('server_td3')
+    sm = rospy.Service('save_model', save_model, save_model)
+    ga = rospy.Service('get_action', get_action, get_action)
+    lr = rospy.Service('learn', learn, learn)
+
+    rospy.spin()
+
+if __name__ == '__main__':
+    main()

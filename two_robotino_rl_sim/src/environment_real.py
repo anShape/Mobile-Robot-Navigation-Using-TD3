@@ -37,22 +37,26 @@ from cv_bridge import CvBridge
 from collections import deque
 from uuid import uuid4
 from itertools import chain
-import utils
+import utils_real as utils
+
+import json
+from PIL import Image
+from io import BytesIO
+import cv2
+
 
 from gazebo_msgs.msg import ModelState 
 from gazebo_msgs.srv import SetModelState
 
+import requests
+import pyrealsense2 as rs
 
 class Env:
     def __init__(self, action_dim=2, max_step=200):
-        self.position = Pose()
-        self.pub_cmd_vel = rospy.Publisher('cmd_vel', Twist, queue_size=1)
-        self.sub_odom = rospy.Subscriber('odom', Odometry, self.get_odometry)
-        self.reset_proxy = rospy.ServiceProxy('gazebo/reset_simulation', Empty)
-        self.unpause_proxy = rospy.ServiceProxy('gazebo/unpause_physics', Empty)
-        self.pause_proxy = rospy.ServiceProxy('gazebo/pause_physics', Empty)
+        self.odom = requests.get('http://192.168.0.101/data/odometry')
+
         self.action_dim = action_dim
-        # Keys CTRL + c will stop script
+        # # Keys CTRL + c will stop script
         rospy.on_shutdown(self.shutdown)
 
         # Added
@@ -72,18 +76,19 @@ class Env:
         self.social_safety_violation_count = 0
         self.ego_safety_violation_count = 0
         self.starting_point = Point()
-        self.starting_point.x = rospy.get_param("/robotino/starting_pose/x")
-        self.starting_point.y = rospy.get_param("/robotino/starting_pose/y")
+        # self.starting_point.x = rospy.get_param("/robotino/starting_pose/x")
+        # self.starting_point.y = rospy.get_param("/robotino/starting_pose/y")
+        # self.starting_point.z = rospy.get_param("/robotino/starting_pose/z")
+        self.starting_point.x, self.starting_point.y, self.rot, self.vx, self.vy, self.omega, self.sec = utils.get_odom()
         self.starting_point.z = rospy.get_param("/robotino/starting_pose/z")
 
-        self.prev_pos = Point()
-        self.prev_pos.x = rospy.get_param("/robotino/starting_pose/x")
-        self.prev_pos.y = rospy.get_param("/robotino/starting_pose/y")
-        self.prev_pos.z = rospy.get_param("/robotino/starting_pose/z")
-
         self.original_desired_point = Point()
-        self.original_desired_point.x = rospy.get_param("/robotino/desired_pose/x")
-        self.original_desired_point.y = rospy.get_param("/robotino/desired_pose/y")
+        # self.original_desired_point.x = rospy.get_param("/robotino/desired_pose/x")
+        # self.original_desired_point.y = rospy.get_param("/robotino/desired_pose/y")
+        # self.original_desired_point.z = rospy.get_param("/robotino/desired_pose/z")
+
+        self.original_desired_point.x = self.starting_point.x - 1.75
+        self.original_desired_point.y = self.starting_point.y + 1.75
         self.original_desired_point.z = rospy.get_param("/robotino/desired_pose/z")
 
         # self.goal_points = [[-1,-1],[-1,0],[-1,1]]
@@ -150,56 +155,85 @@ class Env:
         self.rotate_in_place_action_reward_count = 0
         self.stop_action_reward_count = 0
         self.social_nav_reward_count = 0
+        self.ego_penalty_count = 0
         self.last_action = "FORWARD"
 
         self.total_x_travelled = 0
         self.total_y_travelled = 0
 
         # RVIZ visualization markers to see Collision Probabilities of obstacles w.r.t robot's motion
-        self.pub_obs1_pose_text = rospy.Publisher('/obstacle_text_poses/1', Marker, queue_size=1)
-        self.pub_obs2_pose_text = rospy.Publisher('/obstacle_text_poses/2', Marker, queue_size=1)
-        self.pub_obs3_pose_text = rospy.Publisher('/obstacle_text_poses/3', Marker, queue_size=1)
+        # self.pub_obs1_pose_text = rospy.Publisher('/obstacle_text_poses/1', Marker, queue_size=1)
+        # self.pub_obs2_pose_text = rospy.Publisher('/obstacle_text_poses/2', Marker, queue_size=1)
+        # self.pub_obs3_pose_text = rospy.Publisher('/obstacle_text_poses/3', Marker, queue_size=1)
 
-        self.pub_obs1_pose_shape = rospy.Publisher('/obstacle_text_shape/1', Marker, queue_size=1)
-        self.pub_obs2_pose_shape = rospy.Publisher('/obstacle_text_shape/2', Marker, queue_size=1)
-        self.pub_obs3_pose_shape = rospy.Publisher('/obstacle_text_shape/3', Marker, queue_size=1)
+        # self.pub_obs1_pose_shape = rospy.Publisher('/obstacle_text_shape/1', Marker, queue_size=1)
+        # self.pub_obs2_pose_shape = rospy.Publisher('/obstacle_text_shape/2', Marker, queue_size=1)
+        # self.pub_obs3_pose_shape = rospy.Publisher('/obstacle_text_shape/3', Marker, queue_size=1)
 
         # for testing
         self.inc = 1
 
         # Obstacle rand pose change
-        state_msg_obs1 = ModelState()
-        state_msg_obs1.model_name = 'obstacle_1'
-        state_msg_obs1.pose.position.x, state_msg_obs1.pose.position.y = utils.get_rand_xy()
-        state_msg_obs1.pose.position.z = 0
-        state_msg_obs1.pose.orientation.x = 0
-        state_msg_obs1.pose.orientation.y = 0
-        state_msg_obs1.pose.orientation.z = 0
-        state_msg_obs1.pose.orientation.w = 0
+        # state_msg_obs1 = ModelState()
+        # state_msg_obs1.model_name = 'obstacle_1'
+        # state_msg_obs1.pose.position.x, state_msg_obs1.pose.position.y = utils.get_rand_xy()
+        # state_msg_obs1.pose.position.z = 0
+        # state_msg_obs1.pose.orientation.x = 0
+        # state_msg_obs1.pose.orientation.y = 0
+        # state_msg_obs1.pose.orientation.z = 0
+        # state_msg_obs1.pose.orientation.w = 0
 
-        self.state_msg_obs1 = state_msg_obs1
+        # self.state_msg_obs1 = state_msg_obs1
 
-        state_msg_obs2 = ModelState()
-        state_msg_obs2.model_name = 'obstacle_2'
-        state_msg_obs2.pose.position.x, state_msg_obs1.pose.position.y = utils.get_rand_xy()
-        state_msg_obs2.pose.position.z = 0
-        state_msg_obs2.pose.orientation.x = 0
-        state_msg_obs2.pose.orientation.y = 0
-        state_msg_obs2.pose.orientation.z = 0
-        state_msg_obs2.pose.orientation.w = 0
+        # state_msg_obs2 = ModelState()
+        # state_msg_obs2.model_name = 'obstacle_2'
+        # state_msg_obs2.pose.position.x, state_msg_obs1.pose.position.y = utils.get_rand_xy()
+        # state_msg_obs2.pose.position.z = 0
+        # state_msg_obs2.pose.orientation.x = 0
+        # state_msg_obs2.pose.orientation.y = 0
+        # state_msg_obs2.pose.orientation.z = 0
+        # state_msg_obs2.pose.orientation.w = 0
         
-        self.state_msg_obs2 = state_msg_obs2
+        # self.state_msg_obs2 = state_msg_obs2
 
-        state_msg_obs3 = ModelState()
-        state_msg_obs3.model_name = 'obstacle_3'
-        state_msg_obs3.pose.position.x, state_msg_obs1.pose.position.y = utils.get_rand_xy()
-        state_msg_obs3.pose.position.z = 0
-        state_msg_obs3.pose.orientation.x = 0
-        state_msg_obs3.pose.orientation.y = 0
-        state_msg_obs3.pose.orientation.z = 0
-        state_msg_obs3.pose.orientation.w = 0
+        # state_msg_obs3 = ModelState()
+        # state_msg_obs3.model_name = 'obstacle_3'
+        # state_msg_obs3.pose.position.x, state_msg_obs1.pose.position.y = utils.get_rand_xy()
+        # state_msg_obs3.pose.position.z = 0
+        # state_msg_obs3.pose.orientation.x = 0
+        # state_msg_obs3.pose.orientation.y = 0
+        # state_msg_obs3.pose.orientation.z = 0
+        # state_msg_obs3.pose.orientation.w = 0
 
-        self.state_msg_obs3 = state_msg_obs3
+        # self.state_msg_obs3 = state_msg_obs3
+
+        
+        self.collision_count = 0
+        self.collision_penalty = 0
+
+        # Configure depth and color streams
+        self.pipeline = rs.pipeline()
+        self.config = rs.config()
+
+        # Get device product line for setting a supporting resolution
+        pipeline_wrapper = rs.pipeline_wrapper(self.pipeline)
+        pipeline_profile = self.config.resolve(pipeline_wrapper)
+        device = pipeline_profile.get_device()
+        device_product_line = str(device.get_info(rs.camera_info.product_line))
+
+        found_rgb = False
+        for s in device.sensors:
+            if s.get_info(rs.camera_info.name) == 'RGB Camera':
+                found_rgb = True
+                break
+        if not found_rgb:
+            print("The demo requires Depth camera with Color sensor")
+            exit(0)
+
+        self.config.enable_stream(rs.stream.depth, 640, 480, rs.format.z16, 30)
+
+        # Start streaming
+        self.pipeline.start(self.config)
 
     def shutdown(self):
         rospy.loginfo("Stopping TurtleBot")
@@ -233,18 +267,12 @@ class Env:
     def get_distance_to_goal(self, current_position):
         distance = self.get_distance_from_point(current_position,
                                                 self.waypoint_desired_point)
-        
-        # print("Current position to waypoint distance: " + str(distance))
-        # print("Waypoint: [" + str(self.waypoint_desired_point.x) + ", " + str(self.waypoint_desired_point.y) + "]")
 
         return distance
 
     def get_actual_distance_to_goal(self, current_position):
         distance = self.get_distance_from_point(current_position,
                                                 self.original_desired_point)
-        
-        # print("Current position to goal distance: " + str(distance))
-        # print("Goal: " + str(self.original_desired_point))
 
         return distance
 
@@ -324,7 +352,7 @@ class Env:
         self.robot_yaw = yaw
 
         if not self.done:
-            if data_bumper[0] == 1:
+            if data_bumper[0]:
                 print("DONE: MINIMUM RANGE")
                 # print("MINIMUM: ", str(min(current_scans)))
                 self.done = True
@@ -352,8 +380,6 @@ class Env:
         state = (scan_range + goal_heading_distance + agent_position + agent_orientation + agent_velocity
                  + cnn_result + data_bumper + desired_point)
 
-        # print("State: ", state)
-
         # Round items in state to 2 decimal places
         state = list(np.around(np.array(state), 3))
 
@@ -365,16 +391,6 @@ class Env:
 
         penalty_loop = 0
 
-        # if (step_counter % 75) == 0:
-        #     travel_x = self.prev_pos.x - self.position.x
-        #     travel_y = self.prev_pos.y - self.position.y
-        #     self.prev_pos.x = self.position.x
-        #     self.prev_pos.y = self.position.y
-        #     if travel_x < 0.5 and travel_y < 0.5:
-        #         # print("Robot is stuck in a loop")
-        #         rospy.loginfo("Robot is stuck in a loop!")
-        #         penalty_loop = -300
-
         distance_difference = current_distance - self.previous_distance
         heading_difference = current_heading - self.previous_heading
 
@@ -382,20 +398,6 @@ class Env:
         htg_reward = 0
         dtg_reward = 0
         waypoint_reward = 0
-
-        # Action reward
-        # if self.last_action == "FORWARD":
-        #     self.forward_action_reward_count += 1 # original 1
-        #     action_reward = 10
-        # if self.last_action == "TURN_LEFT":
-        #     self.left_turn_action_reward_count += 1 # originial 1
-        #     action_reward = 1
-        # if self.last_action == "TURN_RIGHT":
-        #     self.right_turn_action_reward_count += 1 # original 1
-        #     action_reward = 1
-        # if self.last_action == "STOP":
-        #     self.stop_action_reward_count += 1 # original 1
-        #     action_reward = 1
 
         # Distance to goal reward
         if distance_difference > 0:
@@ -405,61 +407,23 @@ class Env:
             self.dtg_reward_count += 1
             dtg_reward = 1
 
-        # Heading to goal reward
-        # if heading_difference > 0:
-        #     if current_heading > 0 and self.previous_heading < 0:
-        #         self.htg_reward_count += 1
-        #         htg_reward = 1
-        #     if current_heading < 0 and self.previous_heading < 0:
-        #         self.htg_reward_count += 1
-        #         htg_reward = 1
-        #     if current_heading < 0 and self.previous_heading > 0:
-        #         self.htg_reward_count += 1
-        #         htg_reward = 1
-        #     if current_heading > 0 and self.previous_heading > 0:
-        #         self.htg_penalty_count += 1
-        #         htg_reward = 0
-        # if heading_difference < 0:
-        #     if current_heading < 0 and self.previous_heading > 0:
-        #         self.htg_reward_count += 1
-        #         htg_reward = 1
-        #     if current_heading > 0 and self.previous_heading > 0:
-        #         self.htg_reward_count += 1
-        #         htg_reward = 1
-        #     if current_heading > 0 and self.previous_heading < 0:
-        #         self.htg_reward_count += 1
-        #         htg_reward = 1
-        #     if current_heading < 0 and self.previous_heading < 0:
-        #         self.htg_penalty_count += 1
-        #         htg_reward = 0
+        # Ego penalty
+        scan_ranges_temp = []
+        for i in range(9):
+            scan_ranges_temp.append(state[i])
+        
+        ego_penalty = 0
+        if min(scan_ranges_temp) < 0.4:
+            self.ego_penalty_count += 1
+            ego_penalty = -2
 
-        # Waypoint reward
-        if self.is_in_desired_position(self.position):
-            # rospy.loginfo("Reached waypoint position!!")
+        # Collision penalty
+        collision_penalty = 0
+        if state[577]:
+            self.collision_count += 1
+            collision_penalty = -100
 
-            # print("Robot position: " + str(self.position))
-            # print("Desaired waypoint " + str(self.waypoint_desired_point))
-
-            goal_waypoints = utils.get_local_goal_waypoints([self.position.x, self.position.y],
-                                                            [self.original_desired_point.x,
-                                                             self.original_desired_point.y], 
-                                                             boundary_radius=0.3, epsilon=0.2) #original is 0.3
-            self.waypoint_desired_point.x = goal_waypoints[0]
-            self.waypoint_desired_point.y = goal_waypoints[1]
-            waypoint_reward = 30 # original 200
-            # print("Change desired point")
-            # print(self.waypoint_desired_point)
-
-            # Check if waypoint is within the goal point
-            if self.is_in_true_desired_position(self.waypoint_desired_point):
-                self.waypoint_desired_point.x = self.original_desired_point.x
-                self.waypoint_desired_point.y = self.original_desired_point.y
-                # print("Change desired point to actual goal point since it is near")
-                # print(self.waypoint_desired_point)
-
-        non_terminating_reward = step_reward + dtg_reward
-        # non_terminating_reward = step_reward + dtg_reward + htg_reward + waypoint_reward + penalty_loop  + action_reward
-        # non_terminating_reward = step_reward + dtg_reward + htg_reward + penalty_loop  + action_reward
+        non_terminating_reward = step_reward + dtg_reward + ego_penalty
         self.step_reward_count += 1
 
         if self.last_action is not None:
@@ -479,6 +443,8 @@ class Env:
             print("right action reward count: ", str(self.right_turn_action_reward_count))
             print("stop action reward count: ", str(self.stop_action_reward_count))
             print("social nav reward count: ", str(self.social_nav_reward_count))
+            print("ego penalty count: ", str(self.ego_penalty_count))
+            print("collision count: ", str(self.collision_count))
             print("----------------------------")
             if self.is_in_true_desired_position(self.position):
                 rospy.loginfo("Reached goal position!!")
@@ -530,9 +496,14 @@ class Env:
         if self.vel_t0 == -1:  # Reset when deque is full
             self.vel_t0 = time.time()  # Start timer to get the timelapse between two positions of agent
 
+        # Ganti jadi vx vy omega dan publish ke rest api
+        utils.post_omnidrive(vel_cmd.linear.x, vel_cmd.angular.z, self.robot_yaw)
+
+        # harusnya ini dihapus sih
         # Execute the actions to move the robot for 1 timestep
         start_timestep = time.time()
         self.pub_cmd_vel.publish(vel_cmd)
+        
         time.sleep(0.15)
         end_timestep = time.time() - start_timestep
         if end_timestep < 0.05:
@@ -550,66 +521,38 @@ class Env:
         data_cam = None
         while data_laser is None or data_bumper is None or data_cam is None:
             try:
-                data_laser = rospy.wait_for_message('scan', LaserScan, timeout=5)
+                data_laser = utils.get_laser()
                 data_bumper = utils.get_bumper_data()
-                data_cam = rospy.wait_for_message('camera/depth/image_raw', Image, timeout=5)
+                data_cam = utils.get_cam()
                 bridge = CvBridge()
                 data_cam = bridge.imgmsg_to_cv2(data_cam, desired_encoding='passthrough')
             except:
                 pass
         
         state, done = self.get_state(data_laser, data_bumper, data_cam, step_counter, action)
+        reward, done = self.compute_reward(state, step_counter, done)
 
-        return np.asarray(state), done
+        return np.asarray(state), reward, done
 
     def reset(self):
-        rospy.wait_for_service('gazebo/reset_simulation')
-        try:
-            print("RESET PROXY")
-            self.reset_proxy()
-        except rospy.ServiceException as e:
-            print("gazebo/reset_simulation service call failed")
 
-        # Randomize obstacle positions
-        self.state_msg_obs1.pose.position.x, self.state_msg_obs1.pose.position.y = utils.get_rand_xy()
-        self.state_msg_obs2.pose.position.x, self.state_msg_obs2.pose.position.y = utils.get_rand_xy()
-        self.state_msg_obs3.pose.position.x, self.state_msg_obs3.pose.position.y = utils.get_rand_xy()
+        # Reset variabel
+        self.ego_penalty_count = 0
 
-        rospy.wait_for_service('/gazebo/set_model_state')
-        try:
-            set_state = rospy.ServiceProxy('/gazebo/set_model_state', SetModelState)
-            resp1 = set_state( self.state_msg_obs1 )
-            resp2 = set_state( self.state_msg_obs2 )
-            resp3 = set_state( self.state_msg_obs3 )
-        except rospy.ServiceException as e:
-            print("Service call failed: %s"%e)
-
-        # data_laser = None
-        # while data_laser is None:
-        #     try:
-        #         data_laser = rospy.wait_for_message('scan', LaserScan, timeout=5)
-        #         data_bumper = utils.get_bumper_data()
-        #         data_cam = rospy.wait_for_message('camera/depth/image_raw', Image, timeout=5)
-        #         bridge = CvBridge()
-        #         data_cam = bridge.imgmsg_to_cv2(data_cam, desired_encoding='passthrough')
-        #     except:
-        #         pass
-
-        data_laser = rospy.wait_for_message('scan', LaserScan, timeout=5)
-        data_bumper = utils.get_bumper_data()
-        data_cam = rospy.wait_for_message('camera/depth/image_raw', Image, timeout=5)
-        bridge = CvBridge()
-        data_cam = bridge.imgmsg_to_cv2(data_cam, desired_encoding='passthrough')
-
-        # Get random goal points
-        # random_goal = np.random.randint(0,3)
-        # self.original_desired_point.x = self.goal_points[random_goal][0]
-        # self.original_desired_point.y = self.goal_points[random_goal][1]
-        # self.original_desired_point.z = 0.0
-        # print("Random goal point: ", self.original_desired_point)
+        data_laser = None
+        while data_laser is None:
+            try:
+                data_laser = utils.get_laser()
+                data_bumper = utils.get_bumper_data()
+                frames = self.pipeline.wait_for_frames()
+                depth_frame = frames.get_depth_frame()
+                data_cam = np.asanyarray(depth_frame.get_data())
+            except:
+                pass
 
         # Get initial heading and distance to goal
-        self.previous_distance = self.get_distance_to_goal(self.position)
+        self.odom = requests.get('http://192.168.0.101/data/odometry')
+        self.previous_distance = self.get_distance_to_goal(self.odom)
         self.previous_heading = self.get_heading_to_goal(self.position, self.orientation)
         self.previous_yaw = 3.14
         # print("data bumper: ", data_bumper)
@@ -632,11 +575,12 @@ class Env:
         self.social_safety_violation_count = 0
         self.ego_safety_violation_count = 0
         self.obstacle_present_step_counts = 0
+
         return np.asarray(state)
 
     def get_episode_status(self):
 
-        return self.episode_success
+        return self.episode_success, self.episode_failure
 
     def get_social_safety_violation_status(self, step):
         # Obstacle present step counts means the total steps where an obstacle is detected within the robot's FOV
