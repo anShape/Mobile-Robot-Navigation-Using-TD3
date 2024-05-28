@@ -3,8 +3,8 @@
     <arg name="stage" default="1"/>
     <param name="stage_number"  value="$(arg stage)"/>
     <!-- Load configuration file -->
-    <rosparam file="/home/ihsan/catkin_ws/src/robotino_rl_sim/src/config/td3.yaml" />
-    <rosparam file="/home/ihsan/catkin_ws/src/robotino_rl_sim/src/config/robotino_world.yaml" />
+    <rosparam file="/home/ihsan/catkin_ws/src/two_robotino_rl_sim/src/config/td3.yaml" />
+    <rosparam file="/home/ihsan/catkin_ws/src/two_robotino_rl_sim/src/config/robotino_world.yaml" />
     <!-- Launch the training system -->
-    <node pkg="two_robotino_rl_sim" name="robotino_td3" type="test_stage_1.py" output="screen"/>
+    <node pkg="two_robotino_rl_sim" name="robotino_td3" type="test_model_real.py" output="screen"/>
 </launch>

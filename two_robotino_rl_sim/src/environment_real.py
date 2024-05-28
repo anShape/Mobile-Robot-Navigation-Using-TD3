@@ -54,6 +54,7 @@ import pyrealsense2 as rs
 class Env:
     def __init__(self, action_dim=2, max_step=200):
         self.odom = requests.get('http://192.168.0.101/data/odometry')
+        self.odom = self.odom.json()
 
         self.action_dim = action_dim
         # # Keys CTRL + c will stop script
@@ -79,7 +80,7 @@ class Env:
         # self.starting_point.x = rospy.get_param("/robotino/starting_pose/x")
         # self.starting_point.y = rospy.get_param("/robotino/starting_pose/y")
         # self.starting_point.z = rospy.get_param("/robotino/starting_pose/z")
-        self.starting_point.x, self.starting_point.y, self.rot, self.vx, self.vy, self.omega, self.sec = utils.get_odom()
+        self.starting_point.x, self.starting_point.y, self.rot, self.vx, self.vy, self.omega, self.sec = 0.75, -0.75, 0, 0, 0, 0, 0
         self.starting_point.z = rospy.get_param("/robotino/starting_pose/z")
 
         self.original_desired_point = Point()
@@ -92,11 +93,6 @@ class Env:
         self.original_desired_point.z = rospy.get_param("/robotino/desired_pose/z")
 
         # self.goal_points = [[-1,-1],[-1,0],[-1,1]]
-
-        self.waypoint_desired_point = Point()
-        self.waypoint_desired_point.x = self.original_desired_point.x
-        self.waypoint_desired_point.y = self.original_desired_point.y
-        self.waypoint_desired_point.z = self.original_desired_point.z
 
         self.linear_forward_speed = rospy.get_param('/robotino/linear_forward_speed')
         self.linear_turn_speed = rospy.get_param('/robotino/linear_turn_speed')
@@ -117,10 +113,6 @@ class Env:
         self.closest_obstacle_pose_vel = None
 
         # Deque lists to compare items between time steps
-        self.agent_pose_deque = deque([])
-        self.agent_pose_deque2 = deque([])
-        self.obstacle_pose_deque = utils.init_deque_list(self.scan_ranges - 1)
-        self.obstacle_pose_deque_list = []
         self.vel_t0 = -1  # Store starting time when vel cmd is executed, to get a time step length
         self.timestep_counter = 0
         self.agent_vel_timestep = 0
@@ -172,41 +164,6 @@ class Env:
 
         # for testing
         self.inc = 1
-
-        # Obstacle rand pose change
-        # state_msg_obs1 = ModelState()
-        # state_msg_obs1.model_name = 'obstacle_1'
-        # state_msg_obs1.pose.position.x, state_msg_obs1.pose.position.y = utils.get_rand_xy()
-        # state_msg_obs1.pose.position.z = 0
-        # state_msg_obs1.pose.orientation.x = 0
-        # state_msg_obs1.pose.orientation.y = 0
-        # state_msg_obs1.pose.orientation.z = 0
-        # state_msg_obs1.pose.orientation.w = 0
-
-        # self.state_msg_obs1 = state_msg_obs1
-
-        # state_msg_obs2 = ModelState()
-        # state_msg_obs2.model_name = 'obstacle_2'
-        # state_msg_obs2.pose.position.x, state_msg_obs1.pose.position.y = utils.get_rand_xy()
-        # state_msg_obs2.pose.position.z = 0
-        # state_msg_obs2.pose.orientation.x = 0
-        # state_msg_obs2.pose.orientation.y = 0
-        # state_msg_obs2.pose.orientation.z = 0
-        # state_msg_obs2.pose.orientation.w = 0
-        
-        # self.state_msg_obs2 = state_msg_obs2
-
-        # state_msg_obs3 = ModelState()
-        # state_msg_obs3.model_name = 'obstacle_3'
-        # state_msg_obs3.pose.position.x, state_msg_obs1.pose.position.y = utils.get_rand_xy()
-        # state_msg_obs3.pose.position.z = 0
-        # state_msg_obs3.pose.orientation.x = 0
-        # state_msg_obs3.pose.orientation.y = 0
-        # state_msg_obs3.pose.orientation.z = 0
-        # state_msg_obs3.pose.orientation.w = 0
-
-        # self.state_msg_obs3 = state_msg_obs3
-
         
         self.collision_count = 0
         self.collision_penalty = 0
@@ -257,8 +214,8 @@ class Env:
         return [robot_obs_x, robot_obs_y]
 
     def get_distance_from_point(self, pstart, p_end):
-        a = np.array((pstart.x, pstart.y, pstart.z))
-        b = np.array((p_end.x, p_end.y, p_end.z))
+        a = np.array((pstart[0], pstart[1]))
+        b = np.array((p_end.x, p_end.y))
 
         distance = np.linalg.norm(a - b)
 
@@ -287,13 +244,14 @@ class Env:
 
         return yaw
 
-    def get_heading_to_goal(self, current_position, current_orientation):
-        current_pos_x = current_position.x + self.starting_point.x
-        current_pos_y = current_position.y + self.starting_point.y
+    def get_actual_heading_to_goal(self, current_position):
+        current_pos_x = current_position[0] + self.starting_point.x
+        current_pos_y = current_position[1] + self.starting_point.y
 
-        yaw = self.get_angle_from_point(current_orientation)
-        goal_angle = math.atan2(self.waypoint_desired_point.y - current_pos_y,
-                                self.waypoint_desired_point.x - current_pos_x)
+        # yaw = self.get_angle_from_point(current_orientation)
+        yaw = current_position[2]
+        goal_angle = math.atan2(self.original_desired_point.y - current_pos_y,
+                                self.original_desired_point.x - current_pos_x)
 
         heading = goal_angle - yaw
         if heading > pi:
@@ -310,46 +268,24 @@ class Env:
         self.linear_twist = odom.twist.twist.linear
         self.angular_twist = odom.twist.twist.angular
 
-    def get_state(self, data_laser, data_bumper, data_cam, step_counter=0, action=[0, 0]):
+    def get_state(self, data_laser, data_bumper, data_cam, data_odom, step_counter=0, action=[0, 0]):
 
-        if step_counter == 1:
-            # Get updated waypoints according to the Point Of Intersection at circle (Robot FOV)
-            goal_waypoints = utils.get_local_goal_waypoints([self.position.x, self.position.y],
-                                                            [self.original_desired_point.x,
-                                                             self.original_desired_point.y], 0.3)
+        # distance_to_goal = round(self.get_distance_to_goal(data_odom), 2)
+        # heading_to_goal = round(self.get_heading_to_goal(self.position, self.orientation), 2)
+        actual_heading_to_goal = round(self.get_actual_heading_to_goal(data_odom), 2)
+        actual_distance_to_goal = round(self.get_actual_distance_to_goal(data_odom), 2)
 
-            self.waypoint_desired_point.x = goal_waypoints[0]
-            self.waypoint_desired_point.y = goal_waypoints[1]
-
-        distance_to_goal = round(self.get_distance_to_goal(self.position), 2)
-        heading_to_goal = round(self.get_heading_to_goal(self.position, self.orientation), 2)
-        actual_distance_to_goal = round(self.get_actual_distance_to_goal(self.position), 2)
-
-        # if step_counter % 5 == 0 or distance_to_goal < self.previous_distance: # original 
-        if step_counter % 5 == 0:    
-            goal_waypoints = utils.get_local_goal_waypoints([self.position.x, self.position.y],
-                                                            [self.original_desired_point.x,
-                                                             self.original_desired_point.y], 0.3)
-
-            self.waypoint_desired_point.x = goal_waypoints[0]
-            self.waypoint_desired_point.y = goal_waypoints[1]
-
-        agent_vel_x = -1.0 * (self.linear_twist.x * math.cos(self.angular_twist.z))
-        agent_vel_y = self.linear_twist.x * math.sin(self.angular_twist.z)
-        obstacle_vel_x = 0.0
-        obstacle_vel_y = 0.0
-        self.closest_obstacle_pose = [self.position.x, self.position.y]
-        self.closest_obstacle_vel = [0.0, 0.0]
-        self.closest_obstacle_pose_vel = [self.position.x, self.position.y, 0.0, 0.0] * self.k_obstacle_count
+        # agent_vel_x = -1.0 * (self.linear_twist.x * math.cos(self.angular_twist.z))
+        # agent_vel_y = self.linear_twist.x * math.sin(self.angular_twist.z)
 
         # Get scan ranges from sensor, reverse the scans and remove the final scan because the scan reads in an
         # anti-clockwise manner and the final scan is the same as the first scan, so it is omitted
-        _scan_range = utils.get_scan_ranges(data_laser, self.scan_ranges, self.max_scan_range)
-        scan_range = _scan_range[:]
+        # _scan_range = utils.get_scan_ranges(data_laser, self.scan_ranges, self.max_scan_range)
+        # scan_range = _scan_range[:]
 
         # Get cartesian coordinate of each obstacle poses from the scans.
-        yaw = self.get_angle_from_point(self.orientation)
-        self.robot_yaw = yaw
+        # yaw = self.get_angle_from_point(self.orientation)
+        # self.robot_yaw = yaw
 
         if not self.done:
             if data_bumper[0]:
@@ -357,7 +293,7 @@ class Env:
                 # print("MINIMUM: ", str(min(current_scans)))
                 self.done = True
 
-            if self.is_in_true_desired_position(self.position):
+            if self.is_in_true_desired_position(data_odom):
                 print("DONE: IN DESIRED POSITION")
                 self.done = True
 
@@ -365,11 +301,11 @@ class Env:
                 print("DONE: STEP COUNTER > MAX STEP")
                 self.done = True
 
-        agent_position = [round(self.position.x, 3), round(self.position.y, 3)]
-        agent_orientation = [round(self.robot_yaw, 3)]
-        agent_velocity = [round(agent_vel_x, 3), round(agent_vel_y, 3)]
+        agent_position = [round(data_odom[0], 3), round(data_odom[1].y, 3)]
+        agent_orientation = [round(data_odom[2], 3)]
+        agent_velocity = [round(data_odom[3], 3), round(data_odom[4], 3)]
 
-        goal_heading_distance = [heading_to_goal, distance_to_goal]
+        goal_heading_distance = [actual_heading_to_goal, actual_distance_to_goal]
 
         # Image processing
         cnn_result = utils.cnn(data_cam)
@@ -377,11 +313,13 @@ class Env:
         # For inserting goal point to the state
         desired_point = [self.original_desired_point.x*10, self.original_desired_point.y*10]
 
-        state = (scan_range + goal_heading_distance + agent_position + agent_orientation + agent_velocity
+        state = (data_laser + goal_heading_distance + agent_position + agent_orientation + agent_velocity
                  + cnn_result + data_bumper + desired_point)
 
         # Round items in state to 2 decimal places
         state = list(np.around(np.array(state), 3))
+
+        print("Ini adalah state di get_state()", state)
 
         return state, self.done
 
@@ -488,46 +426,40 @@ class Env:
             elif linear_speed == 0 and angular_speed == 0:
                 self.last_action = "STOP"
 
-        vel_cmd = Twist()
-        vel_cmd.linear.x = linear_speed
-        vel_cmd.angular.z = angular_speed
-        self.vel_cmd = vel_cmd
-
         if self.vel_t0 == -1:  # Reset when deque is full
             self.vel_t0 = time.time()  # Start timer to get the timelapse between two positions of agent
 
-        # Ganti jadi vx vy omega dan publish ke rest api
-        utils.post_omnidrive(vel_cmd.linear.x, vel_cmd.angular.z, self.robot_yaw)
-
-        # harusnya ini dihapus sih
         # Execute the actions to move the robot for 1 timestep
         start_timestep = time.time()
-        self.pub_cmd_vel.publish(vel_cmd)
+        utils.post_omnidrive(linear_speed, angular_speed, self.odom[2])
         
         time.sleep(0.15)
         end_timestep = time.time() - start_timestep
         if end_timestep < 0.05:
             time.sleep(0.05 - end_timestep)
             end_timestep += 0.05 - end_timestep + 0.1  # Without 0.1, the velocity is doubled
-        # Get agent's position in a queue list. This is for collision cone implementation.
-        self.agent_pose_deque.append([round(self.position.x, 3), round(self.position.y, 3)])
+        
         self.agent_vel_timestep = end_timestep
         self.timestep_counter -= 1
 
         # Update previous robot yaw, to check for heading changes, for RVIZ tracking visualization
-        self.previous_yaw = self.robot_yaw
+        self.previous_yaw = self.odom[2]
         data_laser = None
         data_bumper = None
         data_cam = None
         while data_laser is None or data_bumper is None or data_cam is None:
             try:
                 data_laser = utils.get_laser()
+                data_laser = data_laser.json()
                 data_bumper = utils.get_bumper_data()
-                data_cam = utils.get_cam()
-                bridge = CvBridge()
-                data_cam = bridge.imgmsg_to_cv2(data_cam, desired_encoding='passthrough')
+                frames = self.pipeline.wait_for_frames()
+                depth_frame = frames.get_depth_frame()
+                data_cam = np.asanyarray(depth_frame.get_data())
             except:
                 pass
+        data_odom = requests.get('http://192.168.0.101/data/odometry')
+        data_odom = data_odom.json()
+        self.odom = data_odom
         
         state, done = self.get_state(data_laser, data_bumper, data_cam, step_counter, action)
         reward, done = self.compute_reward(state, step_counter, done)
@@ -540,9 +472,12 @@ class Env:
         self.ego_penalty_count = 0
 
         data_laser = None
+        data_bumper = None
+        data_cam = None
         while data_laser is None:
             try:
                 data_laser = utils.get_laser()
+                data_laser = data_laser.json()
                 data_bumper = utils.get_bumper_data()
                 frames = self.pipeline.wait_for_frames()
                 depth_frame = frames.get_depth_frame()
@@ -551,12 +486,21 @@ class Env:
                 pass
 
         # Get initial heading and distance to goal
-        self.odom = requests.get('http://192.168.0.101/data/odometry')
-        self.previous_distance = self.get_distance_to_goal(self.odom)
-        self.previous_heading = self.get_heading_to_goal(self.position, self.orientation)
+        data_odom = requests.get('http://192.168.0.101/data/odometry')
+        data_odom = data_odom.json()
+        self.odom = data_odom
+        if data_bumper[0] == False:
+            data_bumper[0] = 0
+        else:
+            data_bumper[0] = 1
+        self.previous_distance = self.get_actual_distance_to_goal(data_odom)
+        self.previous_heading = self.get_actual_heading_to_goal(data_odom)
         self.previous_yaw = 3.14
-        # print("data bumper: ", data_bumper)
-        state, _ = self.get_state(data_laser, data_bumper, data_cam) 
+        print("data bumper: ", data_bumper)
+        print("data laser: ", data_laser)
+        print("data cam: ", data_cam)
+        print("data odom: ", data_odom)
+        state, _ = self.get_state(data_laser, data_bumper, data_cam, data_odom) 
         # print("RESET STATE: ", state)
         # Temporary (delete)
         self.step_reward_count = 0
@@ -626,8 +570,8 @@ class Env:
         y_pos_plus = self.original_desired_point.y + epsilon
         y_pos_minus = self.original_desired_point.y - epsilon
 
-        x_current = current_position.x
-        y_current = current_position.y
+        x_current = current_position[0]
+        y_current = current_position[1]
 
         x_pos_are_close = (x_current <= x_pos_plus) and (x_current > x_pos_minus)
         y_pos_are_close = (y_current <= y_pos_plus) and (y_current > y_pos_minus)

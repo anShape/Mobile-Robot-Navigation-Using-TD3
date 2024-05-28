@@ -485,6 +485,9 @@ class Env:
                 data_cam = bridge.imgmsg_to_cv2(data_cam, desired_encoding='passthrough')
             except:
                 pass
+        print("data_laser: ", data_laser)
+        print("data_bumper: ", data_bumper)
+        print("data_cam: ", data_cam)
 
         # Get initial heading and distance to goal
         self.previous_distance = self.get_distance_to_goal(self.position)

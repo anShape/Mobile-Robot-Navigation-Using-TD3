@@ -645,17 +645,18 @@ def get_rand_xy():
 
     return x, y
 
-def get_odom():
-    odom = requests.get('http://192.168.0.1/cam0')
-    x = odom.x
-    y = odom.y
-    rot = odom.rot
-    vx = odom.vx
-    vy = odom.vy
-    omega = odom.omega
-    sec = odom.sec
+# def get_odom():
+#     odom = requests.get('http://192.168.0.101/data/odometry')
+#     odom = odom.json()
+#     x = odom[0]
+#     y = odom[1]
+#     rot = odom[2]
+#     vx = odom[3]
+#     vy = odom[4]
+#     omega = odom[5]
+#     seq = odom[6]
 
-    return x, y, rot, vx, vy, omega, sec
+#     return x, y, rot, vx, vy, omega, seq
 
 def get_laser():
     laser = requests.get('http://192.168.0.101/data/distancesensorarray')

@@ -46,9 +46,9 @@ if __name__ == '__main__':
     # actor_resume_path = actor_model_param_path + str(resume_epoch)
     # critic1_resume_path = critic1_model_param_path + str(resume_epoch)
     # critic2_resume_path = critic2_model_param_path + str(resume_epoch)
-    actor_resume_path = '/home/ihsan/catkin_ws/src/two_robotino_rl_sim/src/models/td3/training/stage_99_best_actor_ep330_reward_93'
-    critic1_resume_path = '/home/ihsan/catkin_ws/src/two_robotino_rl_sim/src/models/td3/training/stage_99_best_critic1_ep330_reward_93'
-    critic2_resume_path = '/home/ihsan/catkin_ws/src/two_robotino_rl_sim/src/models/td3/training/stage_99_best_critic2_ep330_reward_93'
+    actor_resume_path = '/home/ihsan/catkin_ws/src/two_robotino_rl_sim/src/models/td3/training/stage_4_best_actor_ep483_reward_187'
+    critic1_resume_path = '/home/ihsan/catkin_ws/src/two_robotino_rl_sim/src/models/td3/training/stage_4_best_critic1_ep483_reward_187'
+    critic2_resume_path = '/home/ihsan/catkin_ws/src/two_robotino_rl_sim/src/models/td3/training/stage_4_best_critic2_ep483_reward_187'
     actor_path = actor_resume_path + '.pt'
     critic1_path = critic1_resume_path + '.pt'
     critic2_path = critic2_resume_path + '.pt'
