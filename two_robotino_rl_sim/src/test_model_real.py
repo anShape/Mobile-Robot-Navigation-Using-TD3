@@ -10,15 +10,14 @@ import numpy as np
 import rospkg
 import utils
 import time
+import requests
 
 from environment_real import Env
 
-# Importing the library
-import psutil
-import timeit
+import sys
+import signal
 
-if __name__ == '__main__':
-    rospy.init_node('td3_test', anonymous=True)
+def main():
 
     # Init environment
     max_step = rospy.get_param("/robotino/nsteps")
@@ -30,9 +29,6 @@ if __name__ == '__main__':
     pkg_path = rospack.get_path('robotino_rl_sim')
     result_outdir = pkg_path + '/src/results/td3' + '/' + stage_name
     model_outdir = pkg_path + '/src/models/td3' + '/' + stage_name
-    actor_model_param_path = model_outdir + '/td3_actor_model_ep'
-    critic1_model_param_path = model_outdir + '/td3_critic1_model_ep'
-    critic2_model_param_path = model_outdir + '/td3_critic2_model_ep'
 
     # Remove log file if exist
     # utils.remove_logfile_if_exist(result_outdir, "td3_training")
@@ -41,13 +37,8 @@ if __name__ == '__main__':
     critic1_path = "/home/ihsan/catkin_ws/src/two_robotino_rl_sim/src/models/td3/training/stage_4_best_critic1_ep483_reward_187.pt"
     critic2_path = "/home/ihsan/catkin_ws/src/two_robotino_rl_sim/src/models/td3/training/stage_4_best_critic2_ep483_reward_187.pt"
 
-    best_reward = 0
-    best_time = 120
-    best_ego_safety = 100
     ep = 0
 
-
-    nepisodes = rospy.get_param("/robotino/nepisodes")
     nsteps = rospy.get_param("/robotino/nsteps")
     actor_learning_rate = rospy.get_param("/robotino/actor_alpha")
     critic_learning_rate = rospy.get_param("/robotino/critic_alpha")
@@ -73,16 +64,18 @@ if __name__ == '__main__':
 
     step_counter = 0
     time_lapse = 0
-    rospy.logwarn("EPISODE: " + str(ep + 1))
+
     cumulated_reward = 0
     social_safety_score = 0
     ego_safety_score = 0
+    env.done = False
+
+    rospy.logwarn("EPISODE: " + str(ep + 1))
 
     # Initialize the environment and get first state of the robot
     observation = env.reset()
     time.sleep(0.1)  # Give time for RL to reset the agent's position
     start_time = time.time()
-    env.done = False
     state = observation
 
     for step in range(nsteps):
@@ -131,4 +124,22 @@ if __name__ == '__main__':
             print("EPISODE FAILURE: ", failure_episode)
             break
 
-    env.reset()
+        env.reset()
+
+def signal_handler(sig, frame):
+    print('Menghentikan program...')
+    # Lakukan pembersihan yang diperlukan di sini
+    rospy.signal_shutdown('SIGINT diterima')
+    sys.exit(0)
+
+if __name__ == '__main__':
+    rospy.init_node('td3_test', anonymous=True)
+
+    signal.signal(signal.SIGINT, signal_handler)
+
+    try:
+        while not rospy.is_shutdown():
+            main()
+    except rospy.ROSInterruptException:
+        print('Keyboard Interrupted')
+        requests.post('http://192.168.0.101/data/omnidrive', json=[0,0,0])      

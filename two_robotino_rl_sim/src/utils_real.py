@@ -609,16 +609,14 @@ def create_rviz_visualization_shape_marker(marker, robot_pose, obs_pose, cp, mty
     return marker
 
 def cnn(image):
-
-    train_image = image.reshape(1, 240, 320, 1)
-    conv_layer = tf.keras.layers.Conv2D(32, (5, 5), strides=5, activation='relu')(train_image)
+    # print("IMAGE SHAPE", image.shape)
+    # print("IMAGE", image)
+    train_image = image.reshape((1, 480, 640, 1))
+    conv_layer = tf.keras.layers.Conv2D(32, (10, 10), strides=5, activation='relu')(train_image)
     # conv_layer = tf.keras.layers.MaxPooling2D(2, 2)(conv_layer)
-    conv_layer = tf.keras.layers.Conv2D(32, (3, 3), strides=4, activation='relu')(conv_layer)
+    conv_layer = tf.keras.layers.Conv2D(32, (8, 8), strides=2, activation='relu')(conv_layer)
     # conv_layer = tf.keras.layers.MaxPooling2D(2, 2)(conv_layer)
-    conv_layer = tf.keras.layers.Conv2D(16, (3, 3), strides=2, activation='relu')(conv_layer)
-    # conv_layer = tf.keras.layers.MaxPooling2D(2, 2)(conv_layer)
-    # print(conv_layer.shape)
-    # print("tes")
+    conv_layer = tf.keras.layers.Conv2D(1, (5, 5), strides=2, activation='relu')(conv_layer)
     conv_layer = tf.keras.layers.Flatten()(conv_layer)
     conv_layer = conv_layer.numpy()
     conv_layer = conv_layer[0]
@@ -672,9 +670,6 @@ def post_omnidrive(vl, vw, yaw):
     vx = vl*math.cos(yaw)
     vy = vl*math.sin(yaw)
     om = vw
-    data = {
-        'vx': vx,
-        'vy': vy,
-        'om': om
-    }
-    requests.post('http://192.168.0.1/data/omnidrive', json=data)
+    data = [vx, vy, om]
+    # print("Data: ", data)
+    requests.post('http://192.168.0.101/data/omnidrive', json=data)

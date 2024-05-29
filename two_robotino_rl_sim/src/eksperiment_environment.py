@@ -429,6 +429,10 @@ class Env:
         vel_cmd.angular.z = angular_speed
         self.vel_cmd = vel_cmd
 
+        # print("VEL_CMD: ", vel_cmd)
+        print("linear speed: ", linear_speed)
+        print("angular speed: ", angular_speed)
+
         # Execute the actions to move the robot for 1 timestep
         start_timestep = time.time()
         self.pub_cmd_vel.publish(vel_cmd)
@@ -475,9 +479,12 @@ class Env:
 
         self.start_time = time.time()
 
+        
+
         data_laser = None
         while data_laser is None:
             try:
+                # print("bawah start")
                 data_laser = rospy.wait_for_message('scan', LaserScan, timeout=5)
                 data_bumper = utils.get_bumper_data()
                 data_cam = rospy.wait_for_message('camera/depth/image_raw', Image, timeout=5)
@@ -485,9 +492,9 @@ class Env:
                 data_cam = bridge.imgmsg_to_cv2(data_cam, desired_encoding='passthrough')
             except:
                 pass
-        print("data_laser: ", data_laser)
-        print("data_bumper: ", data_bumper)
-        print("data_cam: ", data_cam)
+        # print("data_laser: ", data_laser)
+        # print("data_bumper: ", data_bumper)
+        # print("data_cam: ", data_cam)
 
         # Get initial heading and distance to goal
         self.previous_distance = self.get_distance_to_goal(self.position)

@@ -604,6 +604,7 @@ def create_rviz_visualization_shape_marker(marker, robot_pose, obs_pose, cp, mty
     return marker
 
 def cnn(image):
+    # print("CEK IMAGE: ", image)
 
     # train_image = image.reshape(1, 240, 320, 1)
     # v2

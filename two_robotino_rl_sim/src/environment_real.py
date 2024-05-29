@@ -168,33 +168,21 @@ class Env:
         self.collision_count = 0
         self.collision_penalty = 0
 
-        # Configure depth and color streams
         self.pipeline = rs.pipeline()
+
+        # Configure streams
         self.config = rs.config()
-
-        # Get device product line for setting a supporting resolution
-        pipeline_wrapper = rs.pipeline_wrapper(self.pipeline)
-        pipeline_profile = self.config.resolve(pipeline_wrapper)
-        device = pipeline_profile.get_device()
-        device_product_line = str(device.get_info(rs.camera_info.product_line))
-
-        found_rgb = False
-        for s in device.sensors:
-            if s.get_info(rs.camera_info.name) == 'RGB Camera':
-                found_rgb = True
-                break
-        if not found_rgb:
-            print("The demo requires Depth camera with Color sensor")
-            exit(0)
-
         self.config.enable_stream(rs.stream.depth, 640, 480, rs.format.z16, 30)
 
         # Start streaming
         self.pipeline.start(self.config)
 
+        self.start_time = time.time()
+
     def shutdown(self):
         rospy.loginfo("Stopping TurtleBot")
-        self.pub_cmd_vel.publish(Twist())
+        # self.pub_cmd_vel.publish(Twist())
+        requests.post('http://192.168.0.101/data/omnidrive', json=[0,0,0])
         time.sleep(1)
 
     def get_robot_obs_xy_diff(self, robot_pose_x, robot_pose_y, obs_pose_x, obs_pose_y):
@@ -268,24 +256,12 @@ class Env:
         self.linear_twist = odom.twist.twist.linear
         self.angular_twist = odom.twist.twist.angular
 
-    def get_state(self, data_laser, data_bumper, data_cam, data_odom, step_counter=0, action=[0, 0]):
+    def get_state(self, data_laser, data_bumper, data_cam, data_odom, step_counter=0):
 
         # distance_to_goal = round(self.get_distance_to_goal(data_odom), 2)
         # heading_to_goal = round(self.get_heading_to_goal(self.position, self.orientation), 2)
         actual_heading_to_goal = round(self.get_actual_heading_to_goal(data_odom), 2)
         actual_distance_to_goal = round(self.get_actual_distance_to_goal(data_odom), 2)
-
-        # agent_vel_x = -1.0 * (self.linear_twist.x * math.cos(self.angular_twist.z))
-        # agent_vel_y = self.linear_twist.x * math.sin(self.angular_twist.z)
-
-        # Get scan ranges from sensor, reverse the scans and remove the final scan because the scan reads in an
-        # anti-clockwise manner and the final scan is the same as the first scan, so it is omitted
-        # _scan_range = utils.get_scan_ranges(data_laser, self.scan_ranges, self.max_scan_range)
-        # scan_range = _scan_range[:]
-
-        # Get cartesian coordinate of each obstacle poses from the scans.
-        # yaw = self.get_angle_from_point(self.orientation)
-        # self.robot_yaw = yaw
 
         if not self.done:
             if data_bumper[0]:
@@ -301,7 +277,7 @@ class Env:
                 print("DONE: STEP COUNTER > MAX STEP")
                 self.done = True
 
-        agent_position = [round(data_odom[0], 3), round(data_odom[1].y, 3)]
+        agent_position = [round(data_odom[0], 3), round(data_odom[1], 3)]
         agent_orientation = [round(data_odom[2], 3)]
         agent_velocity = [round(data_odom[3], 3), round(data_odom[4], 3)]
 
@@ -319,7 +295,7 @@ class Env:
         # Round items in state to 2 decimal places
         state = list(np.around(np.array(state), 3))
 
-        print("Ini adalah state di get_state()", state)
+        # print("Ini adalah state di get_state()", state)
 
         return state, self.done
 
@@ -329,21 +305,18 @@ class Env:
 
         penalty_loop = 0
 
-        distance_difference = current_distance - self.previous_distance
-        heading_difference = current_heading - self.previous_heading
+        if (step_counter % 75) == 0:
+            travel_x = self.prev_pos.x - self.position.x
+            travel_y = self.prev_pos.y - self.position.y
+            self.prev_pos.x = self.position.x
+            self.prev_pos.y = self.position.y
+
+            if math.sqrt((travel_x**2) + (travel_y**2)) < 0.4:
+                rospy.loginfo("Robot is stuck in a loop!")
+                penalty_loop = -100
+
 
         step_reward = -1  # step penalty
-        htg_reward = 0
-        dtg_reward = 0
-        waypoint_reward = 0
-
-        # Distance to goal reward
-        if distance_difference > 0:
-            self.dtg_penalty_count += 1
-            dtg_reward = 0
-        if distance_difference < 0:
-            self.dtg_reward_count += 1
-            dtg_reward = 1
 
         # Ego penalty
         scan_ranges_temp = []
@@ -355,13 +328,7 @@ class Env:
             self.ego_penalty_count += 1
             ego_penalty = -2
 
-        # Collision penalty
-        collision_penalty = 0
-        if state[577]:
-            self.collision_count += 1
-            collision_penalty = -100
-
-        non_terminating_reward = step_reward + dtg_reward + ego_penalty
+        non_terminating_reward = step_reward + ego_penalty + penalty_loop
         self.step_reward_count += 1
 
         if self.last_action is not None:
@@ -372,31 +339,25 @@ class Env:
 
         if done:
             print("step penalty count: ", str(self.step_reward_count))
-            print("dtg reward count: ", str(self.dtg_reward_count))
-            print("dtg penalty count: ", str(self.dtg_penalty_count))
-            print("htg reward count: ", str(self.htg_reward_count))
-            print("htg penalty count: ", str(self.htg_penalty_count))
-            print("forward action reward count: ", str(self.forward_action_reward_count))
-            print("left action reward count: ", str(self.left_turn_action_reward_count))
-            print("right action reward count: ", str(self.right_turn_action_reward_count))
-            print("stop action reward count: ", str(self.stop_action_reward_count))
-            print("social nav reward count: ", str(self.social_nav_reward_count))
             print("ego penalty count: ", str(self.ego_penalty_count))
-            print("collision count: ", str(self.collision_count))
             print("----------------------------")
             if self.is_in_true_desired_position(self.position):
                 rospy.loginfo("Reached goal position!!")
                 self.episode_failure = False
                 self.episode_success = True
                 goal_reward = 100
-                reward = goal_reward + non_terminating_reward
+                time_lapse = time.time() - self.start_time
+                reward_time = 200 - (time_lapse*2)
+                reward = goal_reward + non_terminating_reward + round(reward_time)
             else:
                 rospy.loginfo("Collision!!")
                 self.episode_failure = True
                 self.episode_success = False
+                early_stop_penalty = 0
+                if self.step_reward_count < 50:
+                    early_stop_penalty = -75
                 collision_reward = -100
-                reward = collision_reward + non_terminating_reward
-            self.pub_cmd_vel.publish(Twist())
+                reward = collision_reward + non_terminating_reward + early_stop_penalty
 
         return reward, done
 
@@ -431,6 +392,9 @@ class Env:
 
         # Execute the actions to move the robot for 1 timestep
         start_timestep = time.time()
+        # print("Linear speed: ", linear_speed)
+        # print("Angular speed: ", angular_speed)
+        # print("Yaw: ", self.odom[2])
         utils.post_omnidrive(linear_speed, angular_speed, self.odom[2])
         
         time.sleep(0.15)
@@ -453,15 +417,17 @@ class Env:
                 data_laser = data_laser.json()
                 data_bumper = utils.get_bumper_data()
                 frames = self.pipeline.wait_for_frames()
-                depth_frame = frames.get_depth_frame()
-                data_cam = np.asanyarray(depth_frame.get_data())
+                depth = frames.get_depth_frame()
+                if not depth: continue
+                depth_image = np.asanyarray(depth.get_data())
+                data_cam = depth_image * depth.get_units()
             except:
                 pass
         data_odom = requests.get('http://192.168.0.101/data/odometry')
         data_odom = data_odom.json()
         self.odom = data_odom
-        
-        state, done = self.get_state(data_laser, data_bumper, data_cam, step_counter, action)
+
+        state, done = self.get_state(data_laser, data_bumper, data_cam, data_odom, step_counter)
         reward, done = self.compute_reward(state, step_counter, done)
 
         return np.asarray(state), reward, done
@@ -471,17 +437,21 @@ class Env:
         # Reset variabel
         self.ego_penalty_count = 0
 
+        self.start_time = time.time()
+
         data_laser = None
         data_bumper = None
         data_cam = None
-        while data_laser is None:
+        while data_laser is None and data_bumper is None and data_cam is None:
             try:
                 data_laser = utils.get_laser()
                 data_laser = data_laser.json()
                 data_bumper = utils.get_bumper_data()
                 frames = self.pipeline.wait_for_frames()
-                depth_frame = frames.get_depth_frame()
-                data_cam = np.asanyarray(depth_frame.get_data())
+                depth = frames.get_depth_frame()
+                if not depth: continue
+                depth_image = np.asanyarray(depth.get_data())
+                data_cam = depth_image * depth.get_units()
             except:
                 pass
 
@@ -496,10 +466,6 @@ class Env:
         self.previous_distance = self.get_actual_distance_to_goal(data_odom)
         self.previous_heading = self.get_actual_heading_to_goal(data_odom)
         self.previous_yaw = 3.14
-        print("data bumper: ", data_bumper)
-        print("data laser: ", data_laser)
-        print("data cam: ", data_cam)
-        print("data odom: ", data_odom)
         state, _ = self.get_state(data_laser, data_bumper, data_cam, data_odom) 
         # print("RESET STATE: ", state)
         # Temporary (delete)
