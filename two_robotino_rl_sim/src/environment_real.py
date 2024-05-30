@@ -55,6 +55,8 @@ class Env:
     def __init__(self, action_dim=2, max_step=200):
         self.odom = requests.get('http://192.168.0.101/data/odometry')
         self.odom = self.odom.json()
+        self.odom[0] = (self.odom[0] - 1) * -1
+        self.odom[1] = (self.odom[1] + 1) * -1
 
         self.action_dim = action_dim
         # # Keys CTRL + c will stop script
@@ -84,12 +86,8 @@ class Env:
         self.starting_point.z = rospy.get_param("/robotino/starting_pose/z")
 
         self.original_desired_point = Point()
-        # self.original_desired_point.x = rospy.get_param("/robotino/desired_pose/x")
-        # self.original_desired_point.y = rospy.get_param("/robotino/desired_pose/y")
-        # self.original_desired_point.z = rospy.get_param("/robotino/desired_pose/z")
-
-        self.original_desired_point.x = self.starting_point.x - 1.75
-        self.original_desired_point.y = self.starting_point.y + 1.75
+        self.original_desired_point.x = rospy.get_param("/robotino/desired_pose/x") 
+        self.original_desired_point.y = rospy.get_param("/robotino/desired_pose/y") 
         self.original_desired_point.z = rospy.get_param("/robotino/desired_pose/z")
 
         # self.goal_points = [[-1,-1],[-1,0],[-1,1]]
@@ -204,8 +202,12 @@ class Env:
     def get_distance_from_point(self, pstart, p_end):
         a = np.array((pstart[0], pstart[1]))
         b = np.array((p_end.x, p_end.y))
+        # print("a: ", a)
+        # print("b: ", b)
 
         distance = np.linalg.norm(a - b)
+
+        # print("Distance: ", distance)
 
         return distance
 
@@ -216,6 +218,7 @@ class Env:
         return distance
 
     def get_actual_distance_to_goal(self, current_position):
+        # print("Original desired point: ", self.original_desired_point)
         distance = self.get_distance_from_point(current_position,
                                                 self.original_desired_point)
 
@@ -249,12 +252,6 @@ class Env:
             heading += 2 * pi
 
         return heading
-
-    def get_odometry(self, odom):
-        self.position = odom.pose.pose.position
-        self.orientation = odom.pose.pose.orientation
-        self.linear_twist = odom.twist.twist.linear
-        self.angular_twist = odom.twist.twist.angular
 
     def get_state(self, data_laser, data_bumper, data_cam, data_odom, step_counter=0):
 
@@ -295,7 +292,14 @@ class Env:
         # Round items in state to 2 decimal places
         state = list(np.around(np.array(state), 3))
 
-        # print("Ini adalah state di get_state()", state)
+        print("Scan ranges: ", data_laser)
+        print("Goal heading distance: ", goal_heading_distance)
+        print("Agent position: ", agent_position)
+        print("Agent orientation: ", agent_orientation)
+        print("Agent velocity: ", agent_velocity)
+        # print("CNN result: ", cnn_result)
+        print("Bumper data: ", data_bumper)
+        print("Desired point: ", desired_point)
 
         return state, self.done
 
@@ -395,6 +399,8 @@ class Env:
         # print("Linear speed: ", linear_speed)
         # print("Angular speed: ", angular_speed)
         # print("Yaw: ", self.odom[2])
+        angular_speed = angular_speed * -1
+
         utils.post_omnidrive(linear_speed, angular_speed, self.odom[2])
         
         time.sleep(0.15)
@@ -425,6 +431,8 @@ class Env:
                 pass
         data_odom = requests.get('http://192.168.0.101/data/odometry')
         data_odom = data_odom.json()
+        data_odom[0] = (data_odom[0] - 1)*-1
+        data_odom[1] = (data_odom[1] + 1)*-1
         self.odom = data_odom
 
         state, done = self.get_state(data_laser, data_bumper, data_cam, data_odom, step_counter)
@@ -458,6 +466,9 @@ class Env:
         # Get initial heading and distance to goal
         data_odom = requests.get('http://192.168.0.101/data/odometry')
         data_odom = data_odom.json()
+        data_odom[0] = (data_odom[0] - 1) * -1 # disesuaikan dengan koordinat gazebo
+        data_odom[1] = (data_odom[1] + 1) * -1 
+        
         self.odom = data_odom
         if data_bumper[0] == False:
             data_bumper[0] = 0

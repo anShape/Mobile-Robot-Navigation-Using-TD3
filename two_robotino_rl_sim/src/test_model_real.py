@@ -91,12 +91,6 @@ def main():
         next_state = observation
         next_state = np.float32(next_state)
 
-        # Learning
-        # if learning:
-        #     td3_trainer.memory.add(state, action, reward, next_state, done)
-        #     if len(td3_trainer.memory) > batch_size:
-        #         td3_trainer.learn(step)
-
         if not done:
             # rospy.logwarn("NOT DONE")
             state = next_state

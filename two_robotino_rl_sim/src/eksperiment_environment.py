@@ -273,11 +273,12 @@ class Env:
         return heading
 
     def get_odometry(self, odom):
-        # print("GET ODOM")
         self.position = odom.pose.pose.position
         self.orientation = odom.pose.pose.orientation
         self.linear_twist = odom.twist.twist.linear
         self.angular_twist = odom.twist.twist.angular
+        # print("Pos: ", self.position)
+        # print("Ori: ", self.orientation)
 
     def get_state(self, data_laser, data_bumper, data_cam, step_counter=0, action=[0, 0]):
 
@@ -326,6 +327,14 @@ class Env:
                  + cnn_result + data_bumper + desired_point)
 
         # print("State: ", state)
+        print("Scan Range: ", scan_range)
+        print("Goal Heading Distance: ", goal_heading_distance)
+        print("Agent Position: ", agent_position)
+        print("Agent Orientation: ", agent_orientation)
+        print("Agent Velocity: ", agent_velocity)
+        # print("CNN Result: ", cnn_result)
+        print("Data Bumper: ", data_bumper)
+        print("Desired Point: ", desired_point)
 
         # Round items in state to 2 decimal places
         state = list(np.around(np.array(state), 3))
@@ -430,11 +439,17 @@ class Env:
         self.vel_cmd = vel_cmd
 
         # print("VEL_CMD: ", vel_cmd)
-        print("linear speed: ", linear_speed)
-        print("angular speed: ", angular_speed)
+        # print("linear speed: ", linear_speed)
+        # print("angular speed: ", angular_speed)
 
         # Execute the actions to move the robot for 1 timestep
         start_timestep = time.time()
+
+        # Check rotation in place
+        vel_cmd.angular.z = -2
+
+
+        print("VEL_CMD: ", vel_cmd)
         self.pub_cmd_vel.publish(vel_cmd)
         time.sleep(0.15)
         end_timestep = time.time() - start_timestep
