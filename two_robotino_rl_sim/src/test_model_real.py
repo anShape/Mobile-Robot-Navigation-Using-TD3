@@ -116,9 +116,11 @@ def main():
             print("EPISODE STEP: ", step + 1)
             print("EPISODE SUCCESS: ", success_episode)
             print("EPISODE FAILURE: ", failure_episode)
-            break
 
-        env.reset()
+            break
+    
+    requests.post('http://192.168.0.101/data/omnidrive', json=[0,0,0])  
+
 
 def signal_handler(sig, frame):
     print('Menghentikan program...')

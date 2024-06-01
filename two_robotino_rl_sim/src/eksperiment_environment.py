@@ -327,14 +327,14 @@ class Env:
                  + cnn_result + data_bumper + desired_point)
 
         # print("State: ", state)
-        print("Scan Range: ", scan_range)
-        print("Goal Heading Distance: ", goal_heading_distance)
-        print("Agent Position: ", agent_position)
-        print("Agent Orientation: ", agent_orientation)
-        print("Agent Velocity: ", agent_velocity)
+        # print("Scan Range: ", scan_range)
+        # print("Goal Heading Distance: ", goal_heading_distance)
+        # print("Agent Position: ", agent_position)
+        # print("Agent Orientation: ", agent_orientation)
+        # print("Agent Velocity: ", agent_velocity)
         # print("CNN Result: ", cnn_result)
-        print("Data Bumper: ", data_bumper)
-        print("Desired Point: ", desired_point)
+        # print("Data Bumper: ", data_bumper)
+        # print("Desired Point: ", desired_point)
 
         # Round items in state to 2 decimal places
         state = list(np.around(np.array(state), 3))
@@ -446,10 +446,10 @@ class Env:
         start_timestep = time.time()
 
         # Check rotation in place
-        vel_cmd.angular.z = -2
+        # vel_cmd.angular.z = -2
 
 
-        print("VEL_CMD: ", vel_cmd)
+        # print("VEL_CMD: ", vel_cmd)
         self.pub_cmd_vel.publish(vel_cmd)
         time.sleep(0.15)
         end_timestep = time.time() - start_timestep
