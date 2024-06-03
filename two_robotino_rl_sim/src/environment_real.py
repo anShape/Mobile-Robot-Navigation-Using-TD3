@@ -57,6 +57,8 @@ class Env:
         self.odom = self.odom.json()
         self.odom[0] = (self.odom[0] - 1) * -1
         self.odom[1] = (self.odom[1] + 1) * -1
+        self.prev_pos = self.odom
+        
 
         self.action_dim = action_dim
         # # Keys CTRL + c will stop script
@@ -224,17 +226,6 @@ class Env:
 
         return distance
 
-    def get_angle_from_point(self, current_orientation):
-        current_ori_x = current_orientation.x
-        current_ori_y = current_orientation.y
-        current_ori_z = current_orientation.z
-        current_ori_w = current_orientation.w
-
-        orientation_list = [current_ori_x, current_ori_y, current_ori_z, current_ori_w]
-        _, _, yaw = euler_from_quaternion(orientation_list)
-
-        return yaw
-
     def get_actual_heading_to_goal(self, current_position):
         current_pos_x = current_position[0] + self.starting_point.x
         current_pos_y = current_position[1] + self.starting_point.y
@@ -310,10 +301,10 @@ class Env:
         penalty_loop = 0
 
         if (step_counter % 75) == 0:
-            travel_x = self.prev_pos.x - self.position.x
-            travel_y = self.prev_pos.y - self.position.y
-            self.prev_pos.x = self.position.x
-            self.prev_pos.y = self.position.y
+            travel_x = self.prev_pos[0] - self.odom[0]
+            travel_y = self.prev_pos[1] - self.odom[1]
+            self.prev_pos[0] = self.odom[0]
+            self.prev_pos[1] = self.odom[1]
 
             if math.sqrt((travel_x**2) + (travel_y**2)) < 0.4:
                 rospy.loginfo("Robot is stuck in a loop!")
@@ -345,7 +336,7 @@ class Env:
             print("step penalty count: ", str(self.step_reward_count))
             print("ego penalty count: ", str(self.ego_penalty_count))
             print("----------------------------")
-            if self.is_in_true_desired_position(self.position):
+            if self.is_in_true_desired_position(self.odom):
                 rospy.loginfo("Reached goal position!!")
                 self.episode_failure = False
                 self.episode_success = True
@@ -401,7 +392,7 @@ class Env:
         # print("Yaw: ", self.odom[2])
         angular_speed = angular_speed * -1
 
-        utils.post_omnidrive(linear_speed, angular_speed, self.odom[2])
+        utils.post_omnidrive(linear_speed, angular_speed)
         
         time.sleep(0.15)
         end_timestep = time.time() - start_timestep
@@ -424,16 +415,37 @@ class Env:
                 data_bumper = utils.get_bumper_data()
                 frames = self.pipeline.wait_for_frames()
                 depth = frames.get_depth_frame()
+                decimation = rs.decimation_filter()
+                # depth = decimation.process(depth)
+
+                spatial = rs.spatial_filter()
+                # depth = spatial.process(depth)
+                # colorized_depth = np.asanyarray(colorizer.colorize(filtered_depth).get_data())
+                # plt.imshow(colorized_depth)
+
+                hole_filling = rs.hole_filling_filter(2)
+                filled_depth = hole_filling.process(depth)
                 if not depth: continue
-                depth_image = np.asanyarray(depth.get_data())
+                depth_image = np.asanyarray(filled_depth.get_data())
+                # depth_image = np.asanyarray(depth.get_data())
                 data_cam = depth_image * depth.get_units()
             except:
                 pass
+        
         data_odom = requests.get('http://192.168.0.101/data/odometry')
         data_odom = data_odom.json()
         data_odom[0] = (data_odom[0] - 1)*-1
         data_odom[1] = (data_odom[1] + 1)*-1
+        if data_odom[2] > 0:
+            data_odom[2] = data_odom[2] - pi
+        else:
+            data_odom[2] = data_odom[2] + pi
         self.odom = data_odom
+
+        if data_bumper[0] == False:
+            data_bumper[0] = 0
+        else:
+            data_bumper[0] = 1
 
         state, done = self.get_state(data_laser, data_bumper, data_cam, data_odom, step_counter)
         reward, done = self.compute_reward(state, step_counter, done)
@@ -457,9 +469,21 @@ class Env:
                 data_bumper = utils.get_bumper_data()
                 frames = self.pipeline.wait_for_frames()
                 depth = frames.get_depth_frame()
+                decimation = rs.decimation_filter()
+                # depth = decimation.process(depth)
+
+                spatial = rs.spatial_filter()
+                # depth = spatial.process(depth)
+                # colorized_depth = np.asanyarray(colorizer.colorize(filtered_depth).get_data())
+                # plt.imshow(colorized_depth)
+
+                hole_filling = rs.hole_filling_filter(2)
+                filled_depth = hole_filling.process(depth)
                 if not depth: continue
-                depth_image = np.asanyarray(depth.get_data())
+                depth_image = np.asanyarray(filled_depth.get_data())
+                # depth_image = np.asanyarray(depth.get_data())
                 data_cam = depth_image * depth.get_units()
+                # print(data_cam.shape)
             except:
                 pass
 
@@ -468,6 +492,10 @@ class Env:
         data_odom = data_odom.json()
         data_odom[0] = (data_odom[0] - 1) * -1 # disesuaikan dengan koordinat gazebo
         data_odom[1] = (data_odom[1] + 1) * -1 
+        if data_odom[2] > 0:
+            data_odom[2] = data_odom[2] - pi
+        else:
+            data_odom[2] = data_odom[2] + pi
         
         self.odom = data_odom
         if data_bumper[0] == False:

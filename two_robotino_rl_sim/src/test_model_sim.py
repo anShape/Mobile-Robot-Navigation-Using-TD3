@@ -12,7 +12,7 @@ import utils
 import time
 import requests
 
-from environment_real import Env
+from eksperiment_environment import Env
 
 import sys
 import signal

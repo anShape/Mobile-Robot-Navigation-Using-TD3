@@ -42,6 +42,9 @@ import utils
 from gazebo_msgs.msg import ModelState 
 from gazebo_msgs.srv import SetModelState
 
+import matplotlib.pyplot as plt 
+from PIL import Image as PIL_Image
+
 
 class Env:
     def __init__(self, action_dim=2, max_step=200):
@@ -327,14 +330,14 @@ class Env:
                  + cnn_result + data_bumper + desired_point)
 
         # print("State: ", state)
-        # print("Scan Range: ", scan_range)
-        # print("Goal Heading Distance: ", goal_heading_distance)
-        # print("Agent Position: ", agent_position)
-        # print("Agent Orientation: ", agent_orientation)
-        # print("Agent Velocity: ", agent_velocity)
+        print("Scan Range: ", scan_range)
+        print("Goal Heading Distance: ", goal_heading_distance)
+        print("Agent Position: ", agent_position)
+        print("Agent Orientation: ", agent_orientation)
+        print("Agent Velocity: ", agent_velocity)
         # print("CNN Result: ", cnn_result)
-        # print("Data Bumper: ", data_bumper)
-        # print("Desired Point: ", desired_point)
+        print("Data Bumper: ", data_bumper)
+        print("Desired Point: ", desired_point)
 
         # Round items in state to 2 decimal places
         state = list(np.around(np.array(state), 3))
@@ -446,7 +449,7 @@ class Env:
         start_timestep = time.time()
 
         # Check rotation in place
-        # vel_cmd.angular.z = -2
+        # vel_cmd.angular.z = -1
 
 
         # print("VEL_CMD: ", vel_cmd)
@@ -499,12 +502,40 @@ class Env:
         data_laser = None
         while data_laser is None:
             try:
-                # print("bawah start")
+                print("bawah start")
                 data_laser = rospy.wait_for_message('scan', LaserScan, timeout=5)
                 data_bumper = utils.get_bumper_data()
                 data_cam = rospy.wait_for_message('camera/depth/image_raw', Image, timeout=5)
                 bridge = CvBridge()
                 data_cam = bridge.imgmsg_to_cv2(data_cam, desired_encoding='passthrough')
+
+                # print(data_cam)
+
+                
+
+                # plt.imshow(data_cam, interpolation='nearest')
+                # plt.show()
+
+                # depth_image_meters = np.clip(data_cam, 0, 255)
+
+                # # Reshape the array to a 2D format if needed (e.g., 10x10 image)
+                # array_2d = depth_image_meters.reshape((480, 640))
+     
+                # # Convert to an unsigned 8-bit integer type (common for images)
+                # array_2d = array_2d.astype(np.uint8)
+
+                # print("array_2d: ", array_2d    )
+          
+                # # Create an image from the array
+                # image = PIL_Image.fromarray(array_2d)
+           
+                # # Save the image
+                # image.save('depth_image_raw_sim.png')
+          
+                # # Display the image (optional)
+                # image.show()
+
+                # print("tes")
             except:
                 pass
         # print("data_laser: ", data_laser)

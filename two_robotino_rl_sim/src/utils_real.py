@@ -666,10 +666,23 @@ def get_cam():
 
     return cam
 
-def post_omnidrive(vl, vw, yaw):
-    vx = vl*math.cos(yaw)
-    vy = vl*math.sin(yaw)
-    om = vw
-    data = [vx, vy, om]
-    # print("Data: ", data)
+def post_omnidrive(vl, vw):
+
+
+    # if yaw > 0:
+    #     yaw = yaw - pi
+    # else:
+    #     yaw = yaw + pi
+        
+    # vx = vl*math.cos(yaw)
+    # vy = vl*math.sin(yaw)
+    # om = vw    
+
+    # data = [vx, vy, om]
+
+    # Test rotate
+    # data = [0, 0, 0.1]
+
+    data = [vl, 0, vw]
+    
     requests.post('http://192.168.0.101/data/omnidrive', json=data)
