@@ -20,8 +20,8 @@ import cv2
     # data = distance.json()
     # print(data[0])
 
-# odom = requests.get('http://192.168.0.101/data/odometry')
-# print(odom.json())
+odom = requests.get('http://192.168.0.101/data/odometry')
+print(odom.json())
 # [0, 0, 0, 0, 0, 0, 0, 0]
 
 # data = bumper.json()
@@ -37,17 +37,17 @@ import cv2
 
 # data = [0.2, 0, 0]
 
-vl = 0.2
-om = 0
+# vl = 0.2
+# om = 0
 
-yaw = 0
-vx = vl*math.cos(yaw)
-vy = vl*math.sin(yaw)
+# yaw = 0
+# vx = vl*math.cos(yaw)
+# vy = vl*math.sin(yaw)
 
-data = [vx, vy, om]
+# data = [vx, vy, om]
 
-for i in range(10):
-    r = requests.post('http://192.168.0.101/data/omnidrive', json=data)
+# for i in range(10):
+#     r = requests.post('http://192.168.0.101/data/omnidrive', json=data)
     
 
 # data = bumper.json()

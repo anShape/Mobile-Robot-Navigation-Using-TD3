@@ -267,7 +267,7 @@ class Env:
 
         agent_position = [round(data_odom[0], 3), round(data_odom[1], 3)]
         agent_orientation = [round(data_odom[2], 3)]
-        agent_velocity = [round(data_odom[3], 3), round(data_odom[4], 3)]
+        agent_velocity = [-round(data_odom[3], 3), -round(data_odom[4], 3)]
 
         goal_heading_distance = [actual_heading_to_goal, actual_distance_to_goal]
 
@@ -390,7 +390,7 @@ class Env:
         # print("Linear speed: ", linear_speed)
         # print("Angular speed: ", angular_speed)
         # print("Yaw: ", self.odom[2])
-        angular_speed = angular_speed * -1
+        # angular_speed = angular_speed * -1
 
         utils.post_omnidrive(linear_speed, angular_speed)
         
@@ -405,13 +405,13 @@ class Env:
 
         # Update previous robot yaw, to check for heading changes, for RVIZ tracking visualization
         self.previous_yaw = self.odom[2]
-        data_laser = None
+        data_laser_raw = None
         data_bumper = None
         data_cam = None
-        while data_laser is None or data_bumper is None or data_cam is None:
+        while data_laser_raw is None or data_bumper is None or data_cam is None:
             try:
-                data_laser = utils.get_laser()
-                data_laser = data_laser.json()
+                data_laser_raw = utils.get_laser()
+                data_laser_raw = data_laser_raw.json()
                 data_bumper = utils.get_bumper_data()
                 frames = self.pipeline.wait_for_frames()
                 depth = frames.get_depth_frame()
@@ -447,6 +447,14 @@ class Env:
         else:
             data_bumper[0] = 1
 
+        data_laser = []
+        data_laser.append(data_laser_raw[0])
+
+        for i in range(8, 0, -1):
+            if data_laser_raw[i] > 0.409:
+                data_laser_raw[i] += 0.12
+            data_laser.append(data_laser_raw[i])
+
         state, done = self.get_state(data_laser, data_bumper, data_cam, data_odom, step_counter)
         reward, done = self.compute_reward(state, step_counter, done)
 
@@ -459,31 +467,37 @@ class Env:
 
         self.start_time = time.time()
 
-        data_laser = None
+        data_laser_raw = None
         data_bumper = None
         data_cam = None
-        while data_laser is None and data_bumper is None and data_cam is None:
+        while data_laser_raw is None and data_bumper is None and data_cam is None:
             try:
-                data_laser = utils.get_laser()
-                data_laser = data_laser.json()
+                data_laser_raw = utils.get_laser()
+                data_laser_raw = data_laser_raw.json()
                 data_bumper = utils.get_bumper_data()
+                # frames = self.pipeline.wait_for_frames()
+                # depth = frames.get_depth_frame()
+                # decimation = rs.decimation_filter()
+                # # depth = decimation.process(depth)
+
+                # spatial = rs.spatial_filter()
+                # # depth = spatial.process(depth)
+                # # colorized_depth = np.asanyarray(colorizer.colorize(filtered_depth).get_data())
+                # # plt.imshow(colorized_depth)
+
+                # # hole_filling = rs.hole_filling_filter(2)
+                # # filled_depth = hole_filling.process(depth)
+                # # if not depth: continue
+                # # depth_image = np.asanyarray(filled_depth.get_data())
+                # depth_image = np.asanyarray(depth.get_data())
+                # data_cam = depth_image * depth.get_units()
+                # # print(data_cam.shape)
+
                 frames = self.pipeline.wait_for_frames()
                 depth = frames.get_depth_frame()
-                decimation = rs.decimation_filter()
-                # depth = decimation.process(depth)
-
-                spatial = rs.spatial_filter()
-                # depth = spatial.process(depth)
-                # colorized_depth = np.asanyarray(colorizer.colorize(filtered_depth).get_data())
-                # plt.imshow(colorized_depth)
-
-                hole_filling = rs.hole_filling_filter(2)
-                filled_depth = hole_filling.process(depth)
                 if not depth: continue
-                depth_image = np.asanyarray(filled_depth.get_data())
-                # depth_image = np.asanyarray(depth.get_data())
+                depth_image = np.asanyarray(depth.get_data())
                 data_cam = depth_image * depth.get_units()
-                # print(data_cam.shape)
             except:
                 pass
 
@@ -505,6 +519,15 @@ class Env:
         self.previous_distance = self.get_actual_distance_to_goal(data_odom)
         self.previous_heading = self.get_actual_heading_to_goal(data_odom)
         self.previous_yaw = 3.14
+
+        data_laser = []
+        data_laser.append(data_laser_raw[0])
+
+        for i in range(8, 0, -1):
+            if data_laser_raw[i] > 0.409:
+                data_laser_raw[i] += 0.12
+            data_laser.append(data_laser_raw[i])
+
         state, _ = self.get_state(data_laser, data_bumper, data_cam, data_odom) 
         # print("RESET STATE: ", state)
         # Temporary (delete)

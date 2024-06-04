@@ -26,16 +26,16 @@ def main():
 
     # Set the logging system
     rospack = rospkg.RosPack()
-    pkg_path = rospack.get_path('robotino_rl_sim')
+    pkg_path = rospack.get_path('two_robotino_rl_sim')
     result_outdir = pkg_path + '/src/results/td3' + '/' + stage_name
     model_outdir = pkg_path + '/src/models/td3' + '/' + stage_name
 
     # Remove log file if exist
     # utils.remove_logfile_if_exist(result_outdir, "td3_training")
 
-    actor_path = "/home/ihsan/catkin_ws/src/two_robotino_rl_sim/src/models/td3/training/stage_4_best_actor_ep483_reward_187.pt"
-    critic1_path = "/home/ihsan/catkin_ws/src/two_robotino_rl_sim/src/models/td3/training/stage_4_best_critic1_ep483_reward_187.pt"
-    critic2_path = "/home/ihsan/catkin_ws/src/two_robotino_rl_sim/src/models/td3/training/stage_4_best_critic2_ep483_reward_187.pt"
+    actor_path = "/home/ihsan/catkin_ws/src/two_robotino_rl_sim/src/models/td3/training/stage_3_best_actor_ep496_reward_204.pt"
+    critic1_path = "/home/ihsan/catkin_ws/src/two_robotino_rl_sim/src/models/td3/training/stage_3_best_critic1_ep496_reward_204.pt"
+    critic2_path = "/home/ihsan/catkin_ws/src/two_robotino_rl_sim/src/models/td3/training/stage_3_best_critic2_ep496_reward_204.pt"
 
     ep = 0
 
@@ -101,8 +101,7 @@ def main():
 
             rospy.logwarn("DONE")
     
-            data = [ep + 1, success_episode, failure_episode, cumulated_reward, step + 1, ego_safety_score,
-                        social_safety_score, time_lapse]
+            data = [ep + 1, success_episode, cumulated_reward, step + 1, ego_safety_score, time_lapse]
             utils.record_data(data, result_outdir, "td3_training_trajectory_test")
             print("EPISODE REWARD: ", cumulated_reward)
             print("EPISODE STEP: ", step + 1)

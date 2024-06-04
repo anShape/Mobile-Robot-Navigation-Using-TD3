@@ -10,32 +10,29 @@ import numpy as np
 import rospkg
 import utils
 import time
-import requests
 
 from eksperiment_environment import Env
 
-import sys
-import signal
+if __name__ == '__main__':
+    rospy.init_node('td3_test', anonymous=True)
 
-def main():
-
-    # Init environment
+        # Init environment
     max_step = rospy.get_param("/robotino/nsteps")
     env = Env(action_dim=2, max_step=max_step)
     stage_name = rospy.get_param("/robotino/stage_name")
 
     # Set the logging system
     rospack = rospkg.RosPack()
-    pkg_path = rospack.get_path('robotino_rl_sim')
+    pkg_path = rospack.get_path('two_robotino_rl_sim')
     result_outdir = pkg_path + '/src/results/td3' + '/' + stage_name
     model_outdir = pkg_path + '/src/models/td3' + '/' + stage_name
 
     # Remove log file if exist
     # utils.remove_logfile_if_exist(result_outdir, "td3_training")
 
-    actor_path = "/home/ihsan/catkin_ws/src/two_robotino_rl_sim/src/models/td3/training/stage_4_best_actor_ep483_reward_187.pt"
-    critic1_path = "/home/ihsan/catkin_ws/src/two_robotino_rl_sim/src/models/td3/training/stage_4_best_critic1_ep483_reward_187.pt"
-    critic2_path = "/home/ihsan/catkin_ws/src/two_robotino_rl_sim/src/models/td3/training/stage_4_best_critic2_ep483_reward_187.pt"
+    actor_path = "/home/ihsan/catkin_ws/src/two_robotino_rl_sim/src/models/td3/training/stage_3_best_actor_ep496_reward_204.pt"
+    critic1_path = "/home/ihsan/catkin_ws/src/two_robotino_rl_sim/src/models/td3/training/stage_3_best_critic1_ep496_reward_204.pt"
+    critic2_path = "/home/ihsan/catkin_ws/src/two_robotino_rl_sim/src/models/td3/training/stage_3_best_critic2_ep496_reward_204.pt"
 
     ep = 0
 
@@ -101,32 +98,13 @@ def main():
 
             rospy.logwarn("DONE")
     
-            data = [ep + 1, success_episode, failure_episode, cumulated_reward, step + 1, ego_safety_score,
-                        social_safety_score, time_lapse]
-            utils.record_data(data, result_outdir, "td3_training_trajectory_test")
+            data = [ep + 1, success_episode, cumulated_reward, step + 1, ego_safety_score, time_lapse]
+            utils.record_data(data, result_outdir, "td3_test_trajectory")
             print("EPISODE REWARD: ", cumulated_reward)
             print("EPISODE STEP: ", step + 1)
             print("EPISODE SUCCESS: ", success_episode)
-            print("EPISODE FAILURE: ", failure_episode)
-
+            print("TIME LAPSE: ", time_lapse)
+            print("EGO SAFETY SCORE: ", ego_safety_score)
             break
     
-    requests.post('http://192.168.0.101/data/omnidrive', json=[0,0,0])  
-
-
-def signal_handler(sig, frame):
-    print('Menghentikan program...')
-    rospy.signal_shutdown('SIGINT diterima')
-    sys.exit(0)
-
-if __name__ == '__main__':
-    rospy.init_node('td3_test', anonymous=True)
-
-    signal.signal(signal.SIGINT, signal_handler)
-
-    try:
-        while not rospy.is_shutdown():
-            main()
-    except rospy.ROSInterruptException:
-        print('Keyboard Interrupted')
-        requests.post('http://192.168.0.101/data/omnidrive', json=[0,0,0])      
+    env.reset()  
