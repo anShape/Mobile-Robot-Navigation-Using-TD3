@@ -1,1 +1,6 @@
 episode_number,success_episode,episode_reward,episode_step,ego_safety_score,timelapse
+1,True,18,93,1.0,21.206621646881104
+fail
+3,True,73,84,1.0,18.060569524765015
+4,True,24,96,1.0,20.730377674102783
+5,True,26,90,1.0,19.855228424072266
