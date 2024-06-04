@@ -37,7 +37,7 @@ def main():
     critic1_path = "/home/ihsan/catkin_ws/src/two_robotino_rl_sim/src/models/td3/training/stage_3_best_critic1_ep496_reward_204.pt"
     critic2_path = "/home/ihsan/catkin_ws/src/two_robotino_rl_sim/src/models/td3/training/stage_3_best_critic2_ep496_reward_204.pt"
 
-    ep = 0
+    ep = 4
 
     nsteps = rospy.get_param("/robotino/nsteps")
     actor_learning_rate = rospy.get_param("/robotino/actor_alpha")
