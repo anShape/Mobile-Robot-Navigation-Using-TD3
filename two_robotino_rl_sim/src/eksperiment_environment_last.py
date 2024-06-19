@@ -42,6 +42,9 @@ import utils
 from gazebo_msgs.msg import ModelState 
 from gazebo_msgs.srv import SetModelState
 
+import matplotlib.pyplot as plt 
+from PIL import Image as PIL_Image
+
 
 class Env:
     def __init__(self, action_dim=2, max_step=200):
@@ -92,11 +95,6 @@ class Env:
                               [[0.3,-0.7],[-0.4,0],[-0.2,-0.7]]]
         self.obstacle_pose_count = 0
 
-        self.waypoint_desired_point = Point()
-        self.waypoint_desired_point.x = self.original_desired_point.x
-        self.waypoint_desired_point.y = self.original_desired_point.y
-        self.waypoint_desired_point.z = self.original_desired_point.z
-
         self.linear_forward_speed = rospy.get_param('/robotino/linear_forward_speed')
         self.linear_turn_speed = rospy.get_param('/robotino/linear_turn_speed')
         self.angular_speed = rospy.get_param('/robotino/angular_speed')
@@ -106,21 +104,11 @@ class Env:
         self.max_steps = max_step
         self.done = False
 
-        # Reward shaping based on moving obstacle region and proximity
-        self.collision_prob = None
-        self.goal_reaching_prob = None
-        self.general_collision_prob = None
-        self.closest_obstacle_region = None
-        self.closest_obstacle_pose = None
-        self.closest_obstacle_vel = None
-        self.closest_obstacle_pose_vel = None
-
         # Deque lists to compare items between time steps
         self.agent_pose_deque = deque([])
         self.agent_pose_deque2 = deque([])
         self.obstacle_pose_deque = utils.init_deque_list(self.scan_ranges - 1)
         self.obstacle_pose_deque_list = []
-        self.vel_t0 = -1  # Store starting time when vel cmd is executed, to get a time step length
         self.timestep_counter = 0
         self.agent_vel_timestep = 0
         self.filtered_obstacle_pose_deque = None
@@ -211,6 +199,10 @@ class Env:
         self.distance_obstacle_threshold = 0.5
 
         self.obstacle_memory = [[0,0,0],[0,0,0]]
+
+        self.start_time = time.time()
+
+        self.step_count = 0
         
 
     def shutdown(self):
@@ -244,10 +236,7 @@ class Env:
 
     def get_distance_to_goal(self, current_position):
         distance = self.get_distance_from_point(current_position,
-                                                self.waypoint_desired_point)
-        
-        # print("Current position to waypoint distance: " + str(distance))
-        # print("Waypoint: [" + str(self.waypoint_desired_point.x) + ", " + str(self.waypoint_desired_point.y) + "]")
+                                                self.original_desired_point)
 
         return distance
 
@@ -276,8 +265,8 @@ class Env:
         current_pos_y = current_position.y + self.starting_point.y
 
         yaw = self.get_angle_from_point(current_orientation)
-        goal_angle = math.atan2(self.waypoint_desired_point.y - current_pos_y,
-                                self.waypoint_desired_point.x - current_pos_x)
+        goal_angle = math.atan2(self.original_desired_point.y - current_pos_y,
+                                self.original_desired_point.x - current_pos_x)
 
         heading = goal_angle - yaw
         if heading > pi:
@@ -289,43 +278,20 @@ class Env:
         return heading
 
     def get_odometry(self, odom):
-        # print("GET ODOM")
         self.position = odom.pose.pose.position
         self.orientation = odom.pose.pose.orientation
         self.linear_twist = odom.twist.twist.linear
         self.angular_twist = odom.twist.twist.angular
+        # print("Pos: ", self.position)
+        # print("Ori: ", self.orientation)
 
     def get_state(self, data_laser, data_bumper, data_cam, step_counter=0, action=[0, 0]):
 
-        if step_counter == 1:
-            # Get updated waypoints according to the Point Of Intersection at circle (Robot FOV)
-            goal_waypoints = utils.get_local_goal_waypoints([self.position.x, self.position.y],
-                                                            [self.original_desired_point.x,
-                                                             self.original_desired_point.y], 0.3)
-
-            self.waypoint_desired_point.x = goal_waypoints[0]
-            self.waypoint_desired_point.y = goal_waypoints[1]
-
-        distance_to_goal = round(self.get_distance_to_goal(self.position), 2)
         heading_to_goal = round(self.get_heading_to_goal(self.position, self.orientation), 2)
         actual_distance_to_goal = round(self.get_actual_distance_to_goal(self.position), 2)
 
-        # if step_counter % 5 == 0 or distance_to_goal < self.previous_distance: # original 
-        if step_counter % 5 == 0:    
-            goal_waypoints = utils.get_local_goal_waypoints([self.position.x, self.position.y],
-                                                            [self.original_desired_point.x,
-                                                             self.original_desired_point.y], 0.3)
-
-            self.waypoint_desired_point.x = goal_waypoints[0]
-            self.waypoint_desired_point.y = goal_waypoints[1]
-
         agent_vel_x = -1.0 * (self.linear_twist.x * math.cos(self.angular_twist.z))
         agent_vel_y = self.linear_twist.x * math.sin(self.angular_twist.z)
-        obstacle_vel_x = 0.0
-        obstacle_vel_y = 0.0
-        self.closest_obstacle_pose = [self.position.x, self.position.y]
-        self.closest_obstacle_vel = [0.0, 0.0]
-        self.closest_obstacle_pose_vel = [self.position.x, self.position.y, 0.0, 0.0] * self.k_obstacle_count
 
         # Get scan ranges from sensor, reverse the scans and remove the final scan because the scan reads in an
         # anti-clockwise manner and the final scan is the same as the first scan, so it is omitted
@@ -354,7 +320,7 @@ class Env:
         agent_orientation = [round(self.robot_yaw, 3)]
         agent_velocity = [round(agent_vel_x, 3), round(agent_vel_y, 3)]
 
-        goal_heading_distance = [heading_to_goal, distance_to_goal]
+        goal_heading_distance = [heading_to_goal, actual_distance_to_goal]
 
         # Image processing
         cnn_result = utils.cnn(data_cam)
@@ -366,6 +332,14 @@ class Env:
                  + cnn_result + data_bumper + desired_point)
 
         # print("State: ", state)
+        # print("Scan Range: ", scan_range)
+        # print("Goal Heading Distance: ", goal_heading_distance)
+        # print("Agent Position: ", agent_position)
+        # print("Agent Orientation: ", agent_orientation)
+        # print("Agent Velocity: ", agent_velocity)
+        # # print("CNN Result: ", cnn_result)
+        # print("Data Bumper: ", data_bumper)
+        # print("Desired Point: ", desired_point)
 
         # Round items in state to 2 decimal places
         state = list(np.around(np.array(state), 3))
@@ -385,51 +359,25 @@ class Env:
             travel_y = self.prev_pos.y - self.position.y
             self.prev_pos.x = self.position.x
             self.prev_pos.y = self.position.y
-            # if travel_x < 0.5 and travel_y < 0.5:
+
             if math.sqrt((travel_x**2) + (travel_y**2)) < 0.4:
-                # print("Robot is stuck in a loop")
                 rospy.loginfo("Robot is stuck in a loop!")
                 penalty_loop = -100
 
-        distance_difference = current_distance - self.previous_distance
-        heading_difference = current_heading - self.previous_heading
 
         step_reward = -1  # step penalty
-        htg_reward = 0
-        dtg_reward = 0
-        waypoint_reward = 0
-
-        # Distance to goal reward
-        if distance_difference > 0:
-            self.dtg_penalty_count += 1
-            dtg_reward = 0
-        if distance_difference < 0:
-            self.dtg_reward_count += 1
-            dtg_reward = 1
 
         # Ego penalty
         scan_ranges_temp = []
         for i in range(9):
             scan_ranges_temp.append(state[i])
-        # print(min(scan_ranges_temp))
         
         ego_penalty = 0
         if min(scan_ranges_temp) < 0.402:
             self.ego_penalty_count += 1
             ego_penalty = -1
 
-
-        # Collision penalty
-        # collision_penalty = 0
-        # if state[577]:
-        #     self.collision_count += 1
-        #     collision_penalty = -100
-
-
-        # print("Passing reward: ", passing_reward)
-        # print("Obstacle memory: ", self.obstacle_memory)
-
-        non_terminating_reward = step_reward + dtg_reward + ego_penalty + penalty_loop 
+        non_terminating_reward = step_reward + ego_penalty + penalty_loop 
         self.step_reward_count += 1
 
         if self.last_action is not None:
@@ -440,8 +388,6 @@ class Env:
 
         if done:
             print("step penalty count: ", str(self.step_reward_count))
-            print("dtg reward count: ", str(self.dtg_reward_count))
-            print("dtg penalty count: ", str(self.dtg_penalty_count))
             print("ego penalty count: ", str(self.ego_penalty_count))
             print("----------------------------")
             
@@ -450,20 +396,18 @@ class Env:
                 self.episode_failure = False
                 self.episode_success = True
                 goal_reward = 100
-                reward_euclid_distance_goal_to_robot = 100/(math.sqrt(((self.original_desired_point.x - self.position.x) ** 2) + ((self.original_desired_point.y - self.position.y) ** 2))*2)
-                print("Reward euclid distance goal to robot: ", reward_euclid_distance_goal_to_robot)
-                reward = goal_reward + non_terminating_reward + round(reward_euclid_distance_goal_to_robot)
+                time_lapse = time.time() - self.start_time
+                reward_time = 200 - (time_lapse*2)
+                reward = goal_reward + non_terminating_reward + round(reward_time)
             else:
                 rospy.loginfo("Collision!!")
                 self.episode_failure = True
                 self.episode_success = False
-                reward_euclid_distance_goal_to_robot = 100/(math.sqrt(((self.original_desired_point.x - self.position.x) ** 2) + ((self.original_desired_point.y - self.position.y) ** 2))*2)
-                # print("Reward euclid distance goal to robot: ", reward_euclid_distance_goal_to_robot)
                 early_stop_penalty = 0
                 if self.step_reward_count < 50:
                     early_stop_penalty = -75
                 collision_reward = -100
-                reward = collision_reward + non_terminating_reward + round(reward_euclid_distance_goal_to_robot) + early_stop_penalty
+                reward = collision_reward + non_terminating_reward + early_stop_penalty
             self.pub_cmd_vel.publish(Twist())
 
         return reward, done
@@ -499,19 +443,25 @@ class Env:
         vel_cmd.angular.z = angular_speed
         self.vel_cmd = vel_cmd
 
-        if self.vel_t0 == -1:  # Reset when deque is full
-            self.vel_t0 = time.time()  # Start timer to get the timelapse between two positions of agent
+        # print("VEL_CMD: ", vel_cmd)
+        # print("linear speed: ", linear_speed)
+        # print("angular speed: ", angular_speed)
 
         # Execute the actions to move the robot for 1 timestep
         start_timestep = time.time()
+
+        # Check rotation in place
+        # vel_cmd.angular.z = -1
+
+
+        # print("VEL_CMD: ", vel_cmd)
         self.pub_cmd_vel.publish(vel_cmd)
         time.sleep(0.15)
         end_timestep = time.time() - start_timestep
         if end_timestep < 0.05:
             time.sleep(0.05 - end_timestep)
             end_timestep += 0.05 - end_timestep + 0.1  # Without 0.1, the velocity is doubled
-        # Get agent's position in a queue list. This is for collision cone implementation.
-        # self.agent_pose_deque.append([round(self.position.x, 3), round(self.position.y, 3)])
+
         self.agent_vel_timestep = end_timestep
         self.timestep_counter -= 1
 
@@ -520,7 +470,7 @@ class Env:
         data_laser = None
         data_bumper = None
         data_cam = None
-        # print ("hihi")
+
         while data_laser is None or data_bumper is None or data_cam is None:
             try:
                 data_laser = rospy.wait_for_message('scan', LaserScan, timeout=5)
@@ -530,9 +480,8 @@ class Env:
                 data_cam = bridge.imgmsg_to_cv2(data_cam, desired_encoding='passthrough')
             except:
                 pass
-        # print("hehe")
+
         state, done = self.get_state(data_laser, data_bumper, data_cam, step_counter, action)
-        # print("haha")
         reward, done = self.compute_reward(state, step_counter, done)
 
         return np.asarray(state), reward, done
@@ -548,9 +497,12 @@ class Env:
         # Reset variabel
         self.ego_penalty_count = 0
 
+        self.start_time = time.time()
+
         data_laser = None
         while data_laser is None:
             try:
+                # print("ambil data sensor")
                 data_laser = rospy.wait_for_message('scan', LaserScan, timeout=5)
                 data_bumper = utils.get_bumper_data()
                 data_cam = rospy.wait_for_message('camera/depth/image_raw', Image, timeout=5)
@@ -558,23 +510,17 @@ class Env:
                 data_cam = bridge.imgmsg_to_cv2(data_cam, desired_encoding='passthrough')
             except:
                 pass
-        # print("hoho")
-        # Get random goal points
-        # random_goal = np.random.randint(0,3)
-        # self.original_desired_point.x = self.goal_points[random_goal][0]
-        # self.original_desired_point.y = self.goal_points[random_goal][1]
-        # self.original_desired_point.z = 0.0
-        # print("Random goal point: ", self.original_desired_point)
+        # print("data_laser: ", data_laser)
+        # print("data_bumper: ", data_bumper)
+        # print("data_cam: ", data_cam)
 
         # Get initial heading and distance to goal
         self.previous_distance = self.get_distance_to_goal(self.position)
         self.previous_heading = self.get_heading_to_goal(self.position, self.orientation)
-        self.previous_yaw = 3.14
-        # print("data bumper: ", data_bumper)
-        # print("haha")
+        self.previous_yaw = 3.14 # INI CEK YAW NYA BENER GA
+
         state, _ = self.get_state(data_laser, data_bumper, data_cam) 
-        # print("hehe")
-        # print("RESET STATE: ", state)
+
         # Temporary (delete)
         self.step_reward_count = 0
         self.dtg_reward_count = 0
@@ -592,8 +538,8 @@ class Env:
         self.social_safety_violation_count = 0
         self.ego_safety_violation_count = 0
         self.obstacle_present_step_counts = 0
-        # self.prev_pos 
         self.prev_pos = self.position
+
         return np.asarray(state)
 
     def get_episode_status(self):

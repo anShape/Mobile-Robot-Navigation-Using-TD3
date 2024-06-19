@@ -69,6 +69,18 @@ def record_data(data, outdir, filename):
         wr = csv.writer(fp, dialect='excel')
         wr.writerow(data)
 
+def record_pose(data, outdir, filename):
+    file_exists = os.path.isfile(outdir + "/" + filename + ".csv")
+    with open(outdir + "/" + filename + ".csv", "a") as fp:
+        headers = ['step', 'x', 'y']
+        writer = csv.DictWriter(fp, delimiter=',', lineterminator='\n', fieldnames=headers)
+
+        if not file_exists:
+            writer.writeheader()  # file doesn't exist yet, write a header
+
+        wr = csv.writer(fp, dialect='excel')
+        wr.writerow(data)
+
 def get_sample_from_cluster(kmeans):  # numpy
     # Nice Pythonic way to get the indices of the points for each corresponding cluster
     mydict = {i: np.where(kmeans.labels_ == i)[0] for i in range(kmeans.n_clusters)}

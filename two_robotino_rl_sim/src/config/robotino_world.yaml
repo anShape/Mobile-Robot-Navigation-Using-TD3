@@ -12,10 +12,25 @@ robotino: #namespace
     max_scan_range: 0.53
     min_scan_range: 0.23 # Change to 0.0 for testing (to get reliable social and ego score readings)
 
+    # desired_pose:
+    #   x: -1 # Change to -2.0 for testing environment
+    #   y: -1 # Change to 2.0 for testing environment
+    #   z: 0.0
+
     desired_pose:
       x: -1 # Change to -2.0 for testing environment
       y: 1 # Change to 2.0 for testing environment
       z: 0.0
+
+    # desired_pose:
+    #   x: 1 # Change to -2.0 for testing environment
+    #   y: 1 # Change to 2.0 for testing environment
+    #   z: 0.0
+
+    # desired_pose:
+    #   x: 0 # Change to -2.0 for testing environment
+    #   y: 0.5 # Change to 2.0 for testing environment
+    #   z: 0.0
 
     starting_pose:
       x: 0.75 # Change to 1.0 for testing environment

@@ -201,6 +201,8 @@ class Env:
         self.obstacle_memory = [[0,0,0],[0,0,0]]
 
         self.start_time = time.time()
+
+        self.step_count = 0
         
 
     def shutdown(self):
@@ -315,6 +317,9 @@ class Env:
                 self.done = True
 
         agent_position = [round(self.position.x, 3), round(self.position.y, 3)]
+        self.step_count += 1
+        data_pos_record = [self.step_count, round(self.position.x, 3), round(self.position.y, 3)]
+        utils.record_pose(data_pos_record, "/home/ihsan/catkin_ws/src/two_robotino_rl_sim/src/results/td3/training", "tracking_trajectory")
         agent_orientation = [round(self.robot_yaw, 3)]
         agent_velocity = [round(agent_vel_x, 3), round(agent_vel_y, 3)]
 
@@ -330,14 +335,14 @@ class Env:
                  + cnn_result + data_bumper + desired_point)
 
         # print("State: ", state)
-        print("Scan Range: ", scan_range)
-        print("Goal Heading Distance: ", goal_heading_distance)
-        print("Agent Position: ", agent_position)
-        print("Agent Orientation: ", agent_orientation)
-        print("Agent Velocity: ", agent_velocity)
-        # print("CNN Result: ", cnn_result)
-        print("Data Bumper: ", data_bumper)
-        print("Desired Point: ", desired_point)
+        # print("Scan Range: ", scan_range)
+        # print("Goal Heading Distance: ", goal_heading_distance)
+        # print("Agent Position: ", agent_position)
+        # print("Agent Orientation: ", agent_orientation)
+        # print("Agent Velocity: ", agent_velocity)
+        # # print("CNN Result: ", cnn_result)
+        # print("Data Bumper: ", data_bumper)
+        # print("Desired Point: ", desired_point)
 
         # Round items in state to 2 decimal places
         state = list(np.around(np.array(state), 3))
@@ -497,45 +502,15 @@ class Env:
 
         self.start_time = time.time()
 
-        
-
         data_laser = None
         while data_laser is None:
             try:
-                print("bawah start")
+                # print("ambil data sensor")
                 data_laser = rospy.wait_for_message('scan', LaserScan, timeout=5)
                 data_bumper = utils.get_bumper_data()
                 data_cam = rospy.wait_for_message('camera/depth/image_raw', Image, timeout=5)
                 bridge = CvBridge()
                 data_cam = bridge.imgmsg_to_cv2(data_cam, desired_encoding='passthrough')
-
-                # print(data_cam)
-
-                
-
-                # plt.imshow(data_cam, interpolation='nearest')
-                # plt.show()
-
-                # depth_image_meters = np.clip(data_cam, 0, 255)
-
-                # # Reshape the array to a 2D format if needed (e.g., 10x10 image)
-                # array_2d = depth_image_meters.reshape((480, 640))
-     
-                # # Convert to an unsigned 8-bit integer type (common for images)
-                # array_2d = array_2d.astype(np.uint8)
-
-                # print("array_2d: ", array_2d    )
-          
-                # # Create an image from the array
-                # image = PIL_Image.fromarray(array_2d)
-           
-                # # Save the image
-                # image.save('depth_image_raw_sim.png')
-          
-                # # Display the image (optional)
-                # image.show()
-
-                # print("tes")
             except:
                 pass
         # print("data_laser: ", data_laser)
