@@ -3,6 +3,7 @@
 """
 Based on:
 https://github.com/dranaju/project
+
 """
 import td3
 import rospy
@@ -10,9 +11,6 @@ import numpy as np
 import rospkg
 import utils
 import time
-# from environment_stage_1_nobonus import Env  # <-- used in latest work
-# from eeeks_environment_stage_4_nobonus import Env
-# from environment_stage_1_original import Env  # For thesis
 from eksperiment_environment import Env
 
 # Importing the library

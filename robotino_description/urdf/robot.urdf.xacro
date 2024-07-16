@@ -1,5 +1,5 @@
 <!-- Edited by: Ihsan Nurkhotib --> 
-<!-- if you editing, please place your name below --> 
+<!-- if you editing this file, please place your name below --> 
 
 <?xml version="1.0" ?>
 <robot name="robotino" xmlns:xacro="http://ros.org/wiki/xacro">
@@ -18,7 +18,6 @@
     <visual name="camera">
       <origin xyz="0 0 0" rpy="1.5708 0 1.5708"/>
       <geometry>
-        <!-- <box size="0.02 0.07 0.03" /> -->
         <mesh filename="package://robotino_description/meshes/Intel_Realsense_D435.stl" scale="0.001 0.001 0.001"/>
       </geometry>
     </visual>
@@ -72,7 +71,6 @@
     <visual>
       <origin xyz="-0.032 0 -0.12" rpy="1.5708 0 1.5708"/>
       <geometry>
-        <!-- <mesh filename="package://robotino_description/meshes/bumper.stl" scale="0.001 0.001 0.001"/> -->
         <mesh filename="package://robotino_description/meshes/robotino_body_diy.stl" scale="0.001 0.001 0.001"/>
       </geometry>
       <material name="light_black"/>
