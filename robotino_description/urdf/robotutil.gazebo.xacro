@@ -1,3 +1,6 @@
+<!-- Edited by: Ihsan Nurkhotib -->
+<!-- if you editing, please place your name below --> 
+
 <?xml version="1.0"?>
 <robot name="turtlebot3_burger_sim" xmlns:xacro="http://ros.org/wiki/xacro">
   <xacro:arg name="laser_visual" default="true"/>

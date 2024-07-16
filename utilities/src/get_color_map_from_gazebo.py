@@ -5,6 +5,9 @@
 ##      Open CV and Numpy integration        ##
 ###############################################
 
+# Edited by: Ihsan Nurkhotib
+# If you edit this code, please place your name below
+
 import pyrealsense2 as rs
 import numpy as np
 import cv2

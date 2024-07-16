@@ -1,3 +1,6 @@
+# Original by: Ihsan Nurkhotib
+# If you edit this code, please place your name below
+
 #!/usr/bin/env python3
 
 import rospy 

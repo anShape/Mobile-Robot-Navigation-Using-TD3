@@ -1,3 +1,6 @@
+# Original by: Ihsan Nurkhotib
+# If you edit this code, please place your name below
+
 import requests
 import math
 import json

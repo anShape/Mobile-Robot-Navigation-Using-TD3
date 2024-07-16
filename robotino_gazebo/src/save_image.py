@@ -8,6 +8,9 @@
 # Using this OpenCV2 tutorial for saving Images:
 # http://opencv-python-tutroals.readthedocs.org/en/latest/py_tutorials/py_gui/py_image_display/py_image_display.html
 
+# Edited by: Ihsan Nurkhotib
+# If you edit this code, please place your name below
+
 # rospy for the subscriber
 import rospy
 # ROS Image message
