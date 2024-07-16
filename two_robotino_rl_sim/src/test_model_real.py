@@ -37,9 +37,9 @@ def main():
     # critic1_path = "/home/ihsan/catkin_ws/src/two_robotino_rl_sim/src/models/td3/training/stage_1_best_critic1_ep936_reward_207.pt"
     # critic2_path = "/home/ihsan/catkin_ws/src/two_robotino_rl_sim/src/models/td3/training/stage_1_best_critic2_ep936_reward_207.pt"
 
-    actor_path = "/home/ihsan/catkin_ws/src/two_robotino_rl_sim/src/models/td3/training/stage_2_best_actor_ep293_reward_119.pt"
-    critic1_path = "/home/ihsan/catkin_ws/src/two_robotino_rl_sim/src/models/td3/training/stage_2_best_critic1_ep293_reward_119.pt"
-    critic2_path = "/home/ihsan/catkin_ws/src/two_robotino_rl_sim/src/models/td3/training/stage_2_best_critic2_ep293_reward_119.pt"
+    # actor_path = "/home/ihsan/catkin_ws/src/two_robotino_rl_sim/src/models/td3/training/stage_2_best_actor_ep293_reward_119.pt"
+    # critic1_path = "/home/ihsan/catkin_ws/src/two_robotino_rl_sim/src/models/td3/training/stage_2_best_critic1_ep293_reward_119.pt"
+    # critic2_path = "/home/ihsan/catkin_ws/src/two_robotino_rl_sim/src/models/td3/training/stage_2_best_critic2_ep293_reward_119.pt"
 
     # actor_path = "/home/ihsan/catkin_ws/src/two_robotino_rl_sim/src/models/td3/training/stage_3_best_actor_ep496_reward_204.pt"
     # critic1_path = "/home/ihsan/catkin_ws/src/two_robotino_rl_sim/src/models/td3/training/stage_3_best_critic1_ep496_reward_204.pt"
@@ -48,6 +48,14 @@ def main():
     # actor_path = "/home/ihsan/catkin_ws/src/two_robotino_rl_sim/src/models/td3/training/stage_4_best_actor_ep483_reward_187.pt"
     # critic1_path = "/home/ihsan/catkin_ws/src/two_robotino_rl_sim/src/models/td3/training/stage_4_best_critic1_ep483_reward_187.pt"
     # critic2_path = "/home/ihsan/catkin_ws/src/two_robotino_rl_sim/src/models/td3/training/stage_4_best_critic2_ep483_reward_187.pt"
+
+    # actor_path = "/home/ihsan/catkin_ws/src/two_robotino_rl_sim/src/models/td3/training/stage_4_best_actor_ep483_reward_187.pt"
+    # critic1_path = "/home/ihsan/catkin_ws/src/two_robotino_rl_sim/src/models/td3/training/stage_4_best_critic1_ep483_reward_187.pt"
+    # critic2_path = "/home/ihsan/catkin_ws/src/two_robotino_rl_sim/src/models/td3/training/stage_4_best_critic2_ep483_reward_187.pt"
+
+    actor_path = "/home/ihsan/catkin_ws/src/two_robotino_rl_sim/src/models/td3/training/new/stage_4_best_actor_ep483_reward_187.pt"
+    critic1_path = "/home/ihsan/catkin_ws/src/two_robotino_rl_sim/src/models/td3/training/new/stage_4_best_critic1_ep483_reward_187.pt"
+    critic2_path = "/home/ihsan/catkin_ws/src/two_robotino_rl_sim/src/models/td3/training/new/stage_4_best_critic2_ep483_reward_187.pt"
 
     ep = 0
 

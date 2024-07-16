@@ -17,20 +17,20 @@ robotino: #namespace
     #   y: -1 # Change to 2.0 for testing environment
     #   z: 0.0
 
-    desired_pose:
-      x: -1 # Change to -2.0 for testing environment
-      y: 1 # Change to 2.0 for testing environment
-      z: 0.0
+    # desired_pose:
+    #   x: -1 # Change to -2.0 for testing environment
+    #   y: 1 # Change to 2.0 for testing environment
+    #   z: 0.0
 
     # desired_pose:
     #   x: 1 # Change to -2.0 for testing environment
     #   y: 1 # Change to 2.0 for testing environment
     #   z: 0.0
 
-    # desired_pose:
-    #   x: 0 # Change to -2.0 for testing environment
-    #   y: 0.5 # Change to 2.0 for testing environment
-    #   z: 0.0
+    desired_pose:
+      x: 0 # Change to -2.0 for testing environment
+      y: 0.5 # Change to 2.0 for testing environment
+      z: 0.0
 
     starting_pose:
       x: 0.75 # Change to 1.0 for testing environment

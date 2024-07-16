@@ -39,13 +39,16 @@ while(1):
     stretch = cv2.merge([stretch,stretch,stretch])
 
     # define colors
-    color1 = (0, 0, 255)     #red
-    color2 = (0, 165, 255)   #orange
-    color3 = (0, 255, 255)   #yellow
-    color4 = (255, 255, 0)   #cyan
-    color5 = (255, 0, 0)     #blue
-    color6 = (128, 64, 64)   #violet
-    colorArr = np.array([[color1, color2, color3, color4, color5, color6]], dtype=np.uint8)
+    color10 = (0, 0, 255)     #red
+    color9 = (0, 30, 255)     #red
+    color8 = (0, 70, 255)     #red
+    color7 = (0, 100, 255)     #red
+    color6 = (0, 165, 255)   #orange
+    color5 = (0, 200, 255)   #orange
+    color4 = (0, 255, 255)   #yellow
+    color3 = (255, 255, 0)   #cyan
+    color2 = (255, 0, 0)     #blue
+    colorArr = np.array([[color2, color3, color4, color5, color6, color7, color8, color9, color10]], dtype=np.uint8)
 
     # resize lut to 256 (or more) values
     lut = cv2.resize(colorArr, (256,1), interpolation = cv2.INTER_LINEAR)

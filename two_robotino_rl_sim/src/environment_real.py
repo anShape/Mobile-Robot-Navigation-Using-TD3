@@ -179,6 +179,8 @@ class Env:
 
         self.start_time = time.time()
 
+        self.step_count = 0
+
     def shutdown(self):
         rospy.loginfo("Stopping TurtleBot")
         # self.pub_cmd_vel.publish(Twist())
@@ -266,6 +268,9 @@ class Env:
                 self.done = True
 
         agent_position = [round(data_odom[0], 3), round(data_odom[1], 3)]
+        self.step_count += 1
+        data_pos_record = [self.step_count, round(data_odom[0], 3), round(data_odom[1], 3)]
+        utils.record_pose(data_pos_record, "/home/ihsan/catkin_ws/src/two_robotino_rl_sim/src/results/td3/training", "real_tracking_trajectory")
         agent_orientation = [round(data_odom[2], 3)]
         agent_velocity = [-round(data_odom[3], 3), -round(data_odom[4], 3)]
 
@@ -283,14 +288,14 @@ class Env:
         # Round items in state to 2 decimal places
         state = list(np.around(np.array(state), 3))
 
-        print("Scan ranges: ", data_laser)
-        print("Goal heading distance: ", goal_heading_distance)
-        print("Agent position: ", agent_position)
-        print("Agent orientation: ", agent_orientation)
-        print("Agent velocity: ", agent_velocity)
-        # print("CNN result: ", cnn_result)
-        print("Bumper data: ", data_bumper)
-        print("Desired point: ", desired_point)
+        # print("Scan ranges: ", data_laser)
+        # print("Goal heading distance: ", goal_heading_distance)
+        # print("Agent position: ", agent_position)
+        # print("Agent orientation: ", agent_orientation)
+        # print("Agent velocity: ", agent_velocity)
+        # # print("CNN result: ", cnn_result)
+        # print("Bumper data: ", data_bumper)
+        # print("Desired point: ", desired_point)
 
         return state, self.done
 

@@ -30,9 +30,9 @@ if __name__ == '__main__':
     # Remove log file if exist
     # utils.remove_logfile_if_exist(result_outdir, "td3_training")
 
-    actor_path = "/home/ihsan/catkin_ws/src/two_robotino_rl_sim/src/models/td3/training/stage_3_best_actor_ep496_reward_204.pt"
-    critic1_path = "/home/ihsan/catkin_ws/src/two_robotino_rl_sim/src/models/td3/training/stage_3_best_critic1_ep496_reward_204.pt"
-    critic2_path = "/home/ihsan/catkin_ws/src/two_robotino_rl_sim/src/models/td3/training/stage_3_best_critic2_ep496_reward_204.pt"
+    actor_path = "/home/ihsan/catkin_ws/src/two_robotino_rl_sim/src/models/td3/training/new/stage_4_best_actor_ep483_reward_187.pt"
+    critic1_path = "/home/ihsan/catkin_ws/src/two_robotino_rl_sim/src/models/td3/training/new/stage_4_best_critic1_ep483_reward_187.pt"
+    critic2_path = "/home/ihsan/catkin_ws/src/two_robotino_rl_sim/src/models/td3/training/new/stage_4_best_critic2_ep483_reward_187.pt"
 
     ep = 0
 

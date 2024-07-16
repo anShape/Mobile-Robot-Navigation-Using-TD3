@@ -686,3 +686,15 @@ def post_omnidrive(vl, vw):
     data = [vl, 0, vw]
     
     requests.post('http://192.168.0.101/data/omnidrive', json=data)
+
+def record_pose(data, outdir, filename):
+    file_exists = os.path.isfile(outdir + "/" + filename + ".csv")
+    with open(outdir + "/" + filename + ".csv", "a") as fp:
+        headers = ['step', 'x', 'y']
+        writer = csv.DictWriter(fp, delimiter=',', lineterminator='\n', fieldnames=headers)
+
+        if not file_exists:
+            writer.writeheader()  # file doesn't exist yet, write a header
+
+        wr = csv.writer(fp, dialect='excel')
+        wr.writerow(data)
