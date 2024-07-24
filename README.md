@@ -16,6 +16,10 @@ This package contains the system dynamics configuration for the overall process 
 1. **Preparation**
 Open your ubuntu 20.04 terminal, type this to updating package index.\
 `sudo apt-get update && apt-get upgrade` 
+Install pip.\
+`sudo apt-get install python3-pip`
+Install required packages.\
+`pip3 install torch tensorflow shapely`
 2. **Install ROS1**
 Follow instruction from [this](http://wiki.ros.org/noetic/Installation/Ubuntu ) official ROS page (*notes: please choose ros-noetic-desktop-full).\
 If you need more explanation for ROS1 installation, you can watch [this](https://youtu.be/Qk4vLFhvfbI?si=n54lakIGoaFFJlqf) great video.
