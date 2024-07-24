@@ -15,9 +15,9 @@ This package contains the system dynamics configuration for the overall process 
 ## Installation
 1. **Preparation**
 Open your ubuntu 20.04 terminal, type this to updating package index.\
-`sudo apt-get update && apt-get upgrade` 
+`sudo apt-get update && apt-get upgrade` \
 Install pip.\
-`sudo apt-get install python3-pip`
+`sudo apt-get install python3-pip`\
 Install required packages.\
 `pip3 install torch tensorflow shapely`
 2. **Install ROS1**
